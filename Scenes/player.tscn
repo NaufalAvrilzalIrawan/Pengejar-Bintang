@@ -58,7 +58,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"Run",
-"speed": 8.0
+"speed": 9.0
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bi64h"]
@@ -73,12 +73,12 @@ script = ExtResource("1_pu2lt")
 texture_filter = 1
 position = Vector2(3.22581, 25.8064)
 sprite_frames = SubResource("SpriteFrames_wpjfl")
-animation = &"Float"
+animation = &"Run"
 autoplay = "Run"
+frame_progress = 0.12078
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(70.9677, 26.8064)
-scale = Vector2(1, 1)
 shape = SubResource("RectangleShape2D_bi64h")
 
 [node name="JumpAudio" type="AudioStreamPlayer2D" parent="."]

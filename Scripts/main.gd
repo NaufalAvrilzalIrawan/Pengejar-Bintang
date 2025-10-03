@@ -159,7 +159,7 @@ func update_game_state(delta: float) -> void:
 	
 	#Moon Ascends
 	if moon.position.y > 80:
-		moon.position.y -= speed * delta * 0.05
+		moon.position.y -= speed * delta * 0.005
 
 func generate_land() -> void:
 	var spawn_threshold = camera.position.x + screen_size.x
