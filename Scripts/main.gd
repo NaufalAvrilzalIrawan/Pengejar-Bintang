@@ -6,6 +6,7 @@ extends Node
 @onready var moon: Sprite2D = $BG/Moon
 @onready var score_label: Label = $BG/Control/LabelScore
 @onready var high_score_label: Label = $BG/Control2/LabelHigh
+@onready var coin_label: Label = $BG/Control5/LabelCoin
 @onready var restart_button: Button = $BG/Control3/Restart
 @onready var start_label: Label = $BG/Control4/Start
 
@@ -42,6 +43,7 @@ var last_land_segment: Node2D = null
 var stone_type := [STONE_1_SCENE, STONE_2_SCENE]
 var stones : Array
 var coins: Array = []
+var coin_count: int = 0
 var _next_stone_spawn_x: float = 0.0
 var _next_projectile_spawn_x: float = 0.0
 var _next_coin_spawn_x: float = 0.0
@@ -86,12 +88,14 @@ func new_game() -> void:
 	game_running = false
 	get_tree().paused = false
 	score = 0.0
+	coin_count = 0
 	speed = START_SPEED
 	difficulty = 0
 	_last_spawn_x = -INF
 
 	#Reset UI
 	score_label.text = "SCORE: 0"
+	coin_label.text = "KOIN: 0"
 	start_label.show()
 	restart_button.hide()
 	
@@ -286,6 +290,8 @@ func _on_coin_collected(body, coin_instance):
 	if body.name == "Player":
 		score += 100
 		score_label.text = "SCORE: %d" % int(score)
+		coin_count += 1
+		coin_label.text = "KOIN: %d" % coin_count
 		
 		print("Coin collected by:", body.name)
 		# $CoinSound.play()

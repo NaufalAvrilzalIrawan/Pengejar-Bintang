@@ -42,6 +42,7 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="LabelScore" type="Label" parent="Control"]
+texture_filter = 1
 layout_mode = 1
 offset_right = 47.0
 offset_bottom = 23.0
@@ -58,12 +59,32 @@ offset_bottom = 40.0
 grow_horizontal = 0
 
 [node name="LabelHigh" type="Label" parent="Control2"]
+texture_filter = 1
 layout_mode = 0
 offset_left = -143.0
 offset_top = 5.0
 offset_right = -43.0
 offset_bottom = 28.0
 text = "HIGH SCORE:"
+
+[node name="Control5" type="Control" parent="."]
+z_index = 3
+layout_mode = 3
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 40.0
+grow_horizontal = 0
+
+[node name="LabelCoin" type="Label" parent="Control5"]
+texture_filter = 1
+layout_mode = 0
+offset_left = -1110.0
+offset_top = 24.0
+offset_right = -1010.0
+offset_bottom = 47.0
+text = "KOIN  :"
 
 [node name="Control3" type="Control" parent="."]
 process_mode = 2
