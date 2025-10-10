@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://c0cf27ribiu3s"]
+[gd_scene load_steps=16 format=3 uid="uid://c0cf27ribiu3s"]
 
 [ext_resource type="Texture2D" uid="uid://7ybeuonauhqn" path="res://Assets/Graphics/Jump/Frame 3.png" id="1_gymyn"]
 [ext_resource type="Script" uid="uid://btwnkqw0t8o7r" path="res://Scripts/player.gd" id="1_pu2lt"]
@@ -64,6 +64,9 @@ animations = [{
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bi64h"]
 size = Vector2(150.688, 382.645)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_pu2lt"]
+size = Vector2(16.093191, 21.469536)
+
 [node name="Player" type="CharacterBody2D"]
 position = Vector2(-1, 0)
 scale = Vector2(0.31, 0.31)
@@ -73,13 +76,17 @@ script = ExtResource("1_pu2lt")
 texture_filter = 1
 position = Vector2(3.22581, 25.8064)
 sprite_frames = SubResource("SpriteFrames_wpjfl")
-animation = &"Run"
+animation = &"Float"
 autoplay = "Run"
-frame_progress = 0.12078
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShapeRunning" type="CollisionShape2D" parent="."]
 position = Vector2(70.9677, 26.8064)
 shape = SubResource("RectangleShape2D_bi64h")
+
+[node name="CollisionShapeJumping" type="CollisionShape2D" parent="."]
+position = Vector2(-11.129027, 0.16129859)
+scale = Vector2(8.999998, 8.999998)
+shape = SubResource("RectangleShape2D_pu2lt")
 
 [node name="JumpAudio" type="AudioStreamPlayer2D" parent="."]
 position = Vector2(3.22581, 38.7097)
