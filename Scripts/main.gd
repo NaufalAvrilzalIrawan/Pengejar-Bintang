@@ -14,6 +14,7 @@ const STONE_1_SCENE := preload("res://Scenes/stone_1.tscn")
 const STONE_2_SCENE := preload("res://Scenes/stone_2.tscn")
 const PROJECTILE_SCENE := preload("res://Scenes/projectile.tscn")
 const BARRIER_SCENE := preload("res://Scenes/barrier.tscn")
+const COIN_SCENE := preload("res://Scenes/coin.tscn")
 const LAND_SCENE := preload("res://Scenes/land.tscn")
 
 
@@ -29,6 +30,8 @@ const LAND_SCENE := preload("res://Scenes/land.tscn")
 @export var GAP_SIZE : float = 180.0
 @export var SAFE_ZONE_PERCENT: float = 0.3
 @export var PROJECTILE_HEIGHTS: Array[int] = [200, 300, 400]
+@export var COIN_AIR_HEIGHTS: Array[int] = [300, 400]
+@export var COIN_GROUND_FLOAT : float = 60.0 # How high coins float above the ground
 
 #Land Variables
 var LAND_SEGMENT_WIDTH: float = 0.0
@@ -38,8 +41,10 @@ var last_land_segment: Node2D = null
 #State Variables
 var stone_type := [STONE_1_SCENE, STONE_2_SCENE]
 var stones : Array
+var coins: Array = []
 var _next_stone_spawn_x: float = 0.0
 var _next_projectile_spawn_x: float = 0.0
+var _next_coin_spawn_x: float = 0.0
 var land_height : int
 var obstacles: Array[Node2D] = []
 var current_barrier: Node2D = null
@@ -126,13 +131,11 @@ func _process(delta: float) -> void:
 		return
 	
 	generate_stones()
-	
 	generate_projectiles()
+	generate_coins()
 
 	update_game_state(delta)
-	
 	generate_land()
-	
 	cleanup_nodes()
 	
 	if player.position.y > 700:
@@ -229,6 +232,69 @@ func generate_projectiles():
 		#Next spawn position
 		_next_projectile_spawn_x = st_x + randi_range(800, 1200)
 
+func generate_coins():
+	var camera_right_edge = camera.position.x + (screen_size.x / 2)
+	
+	# Check if it's time to spawn a new coin cluster
+	if camera_right_edge > _next_coin_spawn_x:
+		var spawn_x_start = camera_right_edge + 150 # Start spawning ahead of camera
+		
+		# Use our new function to make sure we don't spawn over a deadly gap
+		if not is_on_land(spawn_x_start):
+			_next_coin_spawn_x = camera_right_edge + 100 # Try again soon
+			return
+
+		var spawn_y: float
+		# Decide randomly: 0 for ground, 1 for air
+		var spawn_type = randi() % 2
+		
+		if spawn_type == 0:
+			# Spawn on the ground
+			var temp_coin = COIN_SCENE.instantiate()
+			# Safely get the sprite node
+			var coin_sprite = temp_coin.get_node_or_null("Sprite2D") as Sprite2D
+			
+			# Check if the sprite was actually found before using it
+			if coin_sprite and coin_sprite.texture:
+				var coin_height = coin_sprite.texture.get_height() * coin_sprite.scale.y
+				spawn_y = LAND_Y_POSITION - (coin_height / 2) - COIN_GROUND_FLOAT
+			else:
+				# If no sprite is found, fall back to a default height to prevent a crash
+				spawn_y = LAND_Y_POSITION - 20 - COIN_GROUND_FLOAT
+				print_debug("ERROR: Could not find a 'Sprite2D' node in coin.tscn!")
+			
+			temp_coin.queue_free()
+		else:
+			# Spawn in the air
+			spawn_y = COIN_AIR_HEIGHTS[randi() % COIN_AIR_HEIGHTS.size()]
+
+		# Now, spawn a line of 5 coins at the calculated position
+		for i in range(5):
+			var coin_instance = COIN_SCENE.instantiate()
+			var coin_x = spawn_x_start + (i * 60) # Space them out
+			
+			coin_instance.position = Vector2(coin_x, spawn_y)
+			coin_instance.body_entered.connect(_on_coin_collected.bind(coin_instance))
+			
+			add_child(coin_instance)
+			coins.append(coin_instance)
+		
+		# Set the position for the next coin spawn
+		_next_coin_spawn_x = spawn_x_start + randi_range(500, 900)
+
+func _on_coin_collected(body, coin_instance):
+	if body.name == "Player":
+		score += 100
+		score_label.text = "SCORE: %d" % int(score)
+		
+		print("Coin collected by:", body.name)
+		# $CoinSound.play()
+
+		# Remove the coin
+		if coins.has(coin_instance):
+			coins.erase(coin_instance)
+		coin_instance.queue_free()
+
 func add_stones(st, x, y):
 	st.position = Vector2 (x,y)
 	st.body_entered.connect(hit_stone)
@@ -255,6 +321,13 @@ func cleanup_nodes() -> void:
 			if segment.position.x + LAND_SEGMENT_WIDTH < cleanup_threshold:
 				segment.queue_free()
 				land_segments.remove_at(i)
+	
+	# Cleanup coins
+	for i in range(coins.size() - 1, -1, -1):
+		var coin = coins[i]
+		if coin.position.x < cleanup_threshold:
+			coin.queue_free()
+			coins.remove_at(i)
 
 func toggle_barrier() -> void:
 	if current_barrier:
@@ -269,6 +342,15 @@ func toggle_barrier() -> void:
 		if current_barrier:
 			current_barrier.queue_free()
 			current_barrier = null
+
+# This function checks if a given x-coordinate is over any land segment
+func is_on_land(pos_x: float) -> bool:
+	for segment in land_segments:
+		var seg_start = segment.position.x
+		var seg_end = seg_start + LAND_SEGMENT_WIDTH
+		if pos_x >= seg_start and pos_x <= seg_end:
+			return true
+	return false
 
 func game_over() -> void:
 	if score > high_score:
