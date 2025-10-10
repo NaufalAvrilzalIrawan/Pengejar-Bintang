@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://c0cf27ribiu3s"]
+[gd_scene load_steps=17 format=3 uid="uid://c0cf27ribiu3s"]
 
 [ext_resource type="Texture2D" uid="uid://7ybeuonauhqn" path="res://Assets/Graphics/Jump/Frame 3.png" id="1_gymyn"]
 [ext_resource type="Script" uid="uid://btwnkqw0t8o7r" path="res://Scripts/player.gd" id="1_pu2lt"]
@@ -13,8 +13,20 @@
 [ext_resource type="Texture2D" uid="uid://c1x551rugf82b" path="res://Assets/Graphics/Run/Frame 8.png" id="10_l6n3p"]
 [ext_resource type="AudioStream" uid="uid://bwtja6n5f6lyj" path="res://Assets/Audio/JumpAudio.mp3" id="12_pu2lt"]
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_pu2lt"]
+atlas = ExtResource("8_igrcy")
+region = Rect2(0, 0, 313, 362)
+
 [sub_resource type="SpriteFrames" id="SpriteFrames_wpjfl"]
 animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pu2lt")
+}],
+"loop": true,
+"name": &"Dive",
+"speed": 5.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": ExtResource("2_pu2lt")
@@ -76,7 +88,7 @@ script = ExtResource("1_pu2lt")
 texture_filter = 1
 position = Vector2(3.22581, 25.8064)
 sprite_frames = SubResource("SpriteFrames_wpjfl")
-animation = &"Float"
+animation = &"Dive"
 autoplay = "Run"
 
 [node name="CollisionShapeRunning" type="CollisionShape2D" parent="."]
