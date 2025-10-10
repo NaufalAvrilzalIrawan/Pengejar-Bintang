@@ -65,7 +65,7 @@ animations = [{
 size = Vector2(150.688, 382.645)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_pu2lt"]
-size = Vector2(16.093191, 21.469536)
+size = Vector2(22.903229, 25.448034)
 
 [node name="Player" type="CharacterBody2D"]
 position = Vector2(-1, 0)
@@ -84,7 +84,7 @@ position = Vector2(70.9677, 26.8064)
 shape = SubResource("RectangleShape2D_bi64h")
 
 [node name="CollisionShapeJumping" type="CollisionShape2D" parent="."]
-position = Vector2(-11.129027, 0.16129859)
+position = Vector2(19.516136, -17.74194)
 scale = Vector2(8.999998, 8.999998)
 shape = SubResource("RectangleShape2D_pu2lt")
 

@@ -288,7 +288,7 @@ func generate_coins():
 
 func _on_coin_collected(body, coin_instance):
 	if body.name == "Player":
-		score += 100
+		score += 10
 		score_label.text = "SCORE: %d" % int(score)
 		coin_count += 1
 		coin_label.text = "KOIN: %d" % coin_count
