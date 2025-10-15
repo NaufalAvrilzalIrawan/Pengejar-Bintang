@@ -64,8 +64,12 @@ var _last_spawn_x: float = -INF
 
 
 func _ready():
+	# Load the high score from the singleton
+	high_score = GameData.high_score
+	high_score_label.text = "HIGH SCORE: %d" % int(high_score)
+	
 	screen_size = get_window().size
-	restart_button.pressed.connect(new_game)
+	restart_button.pressed.connect(reload_game)
 	
 	#Set Land Width
 	var temp_land = LAND_SCENE.instantiate()
@@ -83,6 +87,9 @@ func _ready():
 
 	new_game()
 
+func reload_game() -> void:
+	get_tree().reload_current_scene()
+	
 func new_game() -> void:
 	#Reset state
 	game_running = false
@@ -100,11 +107,17 @@ func new_game() -> void:
 	restart_button.hide()
 	
 	_next_stone_spawn_x = player.position.x + screen_size.x
+	_next_projectile_spawn_x = player.position.x + screen_size.x + 400
+	_next_coin_spawn_x = player.position.x + screen_size.x + 200
 	
 	#Cleanup
 	for obstacle in obstacles:
 		obstacle.queue_free()
 	obstacles.clear()
+	
+	for coin in coins:
+		coin.queue_free()
+	coins.clear()
 	
 	for segment in land_segments:
 		segment.queue_free()
@@ -359,9 +372,10 @@ func is_on_land(pos_x: float) -> bool:
 	return false
 
 func game_over() -> void:
-	if score > high_score:
-		high_score = score
-		high_score_label.text = "HIGH SCORE: %d" % int(high_score)
+	if score > GameData.high_score:
+		GameData.high_score = score
+		# Now, call the save function to write it to the file!
+		GameData.save_data()
 
 	get_tree().paused = true
 	game_running = false
