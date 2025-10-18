@@ -32,8 +32,5 @@ func _physics_process(delta):
 			velocity.y = DIVE_SPEED
 			# Optional: Play a dive animation and sound
 			$AnimatedSprite2D.play("Dive") # Assumes you create a "Dive" animation
-		else:
-			# If not diving, just do the regular float/fall animation
-			$AnimatedSprite2D.play("Float")
 	
 	move_and_slide()

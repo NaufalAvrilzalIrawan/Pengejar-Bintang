@@ -300,19 +300,38 @@ func generate_coins():
 		_next_coin_spawn_x = spawn_x_start + randi_range(500, 900)
 
 func _on_coin_collected(body, coin_instance):
-	if body.name == "Player":
-		score += 10
-		score_label.text = "SCORE: %d" % int(score)
-		coin_count += 1
-		coin_label.text = "KOIN: %d" % coin_count
-		
-		print("Coin collected by:", body.name)
-		# $CoinSound.play()
-
-		# Remove the coin
-		if coins.has(coin_instance):
-			coins.erase(coin_instance)
-		coin_instance.queue_free()
+	if body.name != "Player":
+		return
+	
+	# Tambah skor & koin
+	score += 10
+	score_label.text = "SCORE: %d" % int(score)
+	coin_count += 1
+	coin_label.text = "COINS: %d" % coin_count
+	
+	# Mainkan SFX (kalau ada)
+	if has_node("CoinSound"):
+		$CoinSound.play()
+	
+	# Pastikan coin_instance masih valid sebelum animasi
+	if coin_instance == null or not is_instance_valid(coin_instance):
+		return
+	
+	# Hapus dari daftar coins supaya tidak diproses ulang
+	if coins.has(coin_instance):
+		coins.erase(coin_instance)
+	
+	# Tambahkan animasi pickup sederhana (membesar lalu menghilang)
+	var tween := create_tween()
+	tween.tween_property(coin_instance, "scale", Vector2(1.5, 1.5), 0.1)
+	tween.tween_property(coin_instance, "scale", Vector2.ZERO, 0.2)
+	tween.tween_property(coin_instance, "modulate:a", 0.0, 0.2)
+	
+	# Setelah animasi selesai, hapus node (dengan cek validasi)
+	tween.finished.connect(func():
+		if is_instance_valid(coin_instance):
+			coin_instance.queue_free()
+	)
 
 func add_stones(st, x, y):
 	st.position = Vector2 (x,y)

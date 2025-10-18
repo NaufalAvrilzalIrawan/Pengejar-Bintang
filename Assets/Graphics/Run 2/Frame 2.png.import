@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dm5i40a4f4lun"
-path="res://.godot/imported/Orange.png-801c36099e0b9af80c43497dd49f2148.ctex"
+uid="uid://dme00kfk5pmhs"
+path="res://.godot/imported/Frame 2.png-32a3b10a29977110550404ca36adedf8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Graphics/Object/Orange.png"
-dest_files=["res://.godot/imported/Orange.png-801c36099e0b9af80c43497dd49f2148.ctex"]
+source_file="res://Assets/Graphics/Run 2/Frame 2.png"
+dest_files=["res://.godot/imported/Frame 2.png-32a3b10a29977110550404ca36adedf8.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dm5i40a4f4lun"
-path="res://.godot/imported/Orange.png-801c36099e0b9af80c43497dd49f2148.ctex"
+uid="uid://b0ojbhgvn48ur"
+path="res://.godot/imported/Frame 3.png-2f8882cc4f3cb386d6746c56c38f5aef.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Graphics/Object/Orange.png"
-dest_files=["res://.godot/imported/Orange.png-801c36099e0b9af80c43497dd49f2148.ctex"]
+source_file="res://Assets/Graphics/Coin 2/Frame 3.png"
+dest_files=["res://.godot/imported/Frame 3.png-2f8882cc4f3cb386d6746c56c38f5aef.ctex"]
 
 [params]
 

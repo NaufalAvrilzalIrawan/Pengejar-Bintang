@@ -1,14 +1,13 @@
-[gd_scene load_steps=5 format=3 uid="uid://b0icltu2su8cx"]
+[gd_scene load_steps=6 format=3 uid="uid://b0icltu2su8cx"]
 
 [ext_resource type="PackedScene" uid="uid://c7231434815qv" path="res://Scenes/bg.tscn" id="1_8gbba"]
 [ext_resource type="Script" uid="uid://hyrvacbb8i5c" path="res://Scripts/main.gd" id="1_jjvhh"]
 [ext_resource type="PackedScene" uid="uid://c0cf27ribiu3s" path="res://Scenes/player.tscn" id="3_kry3j"]
 [ext_resource type="AudioStream" uid="uid://b6dqrm3pncrf2" path="res://Assets/Audio/08 Pale Court (Hollow Knight_ Gods _ Nightmares)(MP3_160K).mp3" id="4_jjvhh"]
+[ext_resource type="AudioStream" uid="uid://chtqkqkxxv8ip" path="res://Assets/Audio/8-Bit Coin Sound Effect.wav" id="5_kry3j"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1_jjvhh")
-
-[node name="BG" parent="." instance=ExtResource("1_8gbba")]
 
 [node name="Player" parent="." instance=ExtResource("3_kry3j")]
 position = Vector2(66, 499)
@@ -20,11 +19,11 @@ position = Vector2(576, 324)
 stream = ExtResource("4_jjvhh")
 volume_db = -10.306
 
+[node name="BG" parent="BGM" instance=ExtResource("1_8gbba")]
+
 [node name="PopupMenu" type="PopupMenu" parent="."]
-oversampling_override = 1.0
 position = Vector2i(500, 163)
 size = Vector2i(200, 200)
-visible = true
 item_count = 3
 item_0/text = "Resume"
 item_0/id = 0
@@ -32,3 +31,6 @@ item_1/text = "Option"
 item_1/id = 1
 item_2/text = "Quit"
 item_2/id = 2
+
+[node name="CoinSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("5_kry3j")
