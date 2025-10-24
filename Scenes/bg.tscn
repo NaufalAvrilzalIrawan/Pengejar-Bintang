@@ -47,12 +47,11 @@ texture = ExtResource("4_h0vxs")
 centered = false
 
 [node name="ParallaxLayer4" type="ParallaxLayer" parent="."]
-z_index = 2
+z_index = 1
 motion_scale = Vector2(0.05, 0.05)
 motion_mirroring = Vector2(2300, 0)
 
 [node name="Sprite2D" type="Sprite2D" parent="ParallaxLayer4"]
-z_index = -1
 texture_filter = 1
 position = Vector2(1325, 255)
 scale = Vector2(0.6, 0.6)
@@ -180,8 +179,6 @@ text = "Press any button to Play"
 horizontal_alignment = 1
 
 [node name="Moon" type="Sprite2D" parent="."]
-visible = false
-z_index = 1
-position = Vector2(698, 333)
-scale = Vector2(0.606897, 0.577586)
+position = Vector2(698, 628)
+scale = Vector2(0.5, 0.5)
 texture = ExtResource("4_3hex7")

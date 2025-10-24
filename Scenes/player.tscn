@@ -1,4 +1,4 @@
-[gd_scene load_steps=31 format=3 uid="uid://c0cf27ribiu3s"]
+[gd_scene load_steps=30 format=3 uid="uid://c0cf27ribiu3s"]
 
 [ext_resource type="Script" uid="uid://btwnkqw0t8o7r" path="res://Scripts/player.gd" id="1_pu2lt"]
 [ext_resource type="Texture2D" uid="uid://cv8unndvj6hsd" path="res://Assets/Graphics/Rolling/Frame 1.png" id="2_fd4e3"]
@@ -129,9 +129,6 @@ animations = [{
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bi64h"]
 size = Vector2(104.376, 264.516)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_pu2lt"]
-size = Vector2(11.1111, 24.3727)
-
 [node name="Player" type="CharacterBody2D"]
 scale = Vector2(0.31, 0.31)
 script = ExtResource("1_pu2lt")
@@ -139,33 +136,110 @@ script = ExtResource("1_pu2lt")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 texture_filter = 1
 sprite_frames = SubResource("SpriteFrames_wpjfl")
-animation = &"Dive"
+animation = &"Jump"
 autoplay = "Run"
+frame = 5
 
 [node name="CollisionShapeRunning" type="CollisionShape2D" parent="."]
-position = Vector2(47.8119, -0.000120747)
+position = Vector2(3.22581, -0.000120747)
+scale = Vector2(1, 1)
 shape = SubResource("RectangleShape2D_bi64h")
 
-[node name="CollisionShapeJumping" type="CollisionShape2D" parent="."]
-position = Vector2(50, -22.5806)
-scale = Vector2(9, 9)
-shape = SubResource("RectangleShape2D_pu2lt")
+[node name="CollisionShapeJumping" type="CollisionPolygon2D" parent="."]
+position = Vector2(3.22581, -0.000120747)
+scale = Vector2(1, 1)
+polygon = PackedVector2Array(-19.3548, -19.3547, 80.6452, 83.8711, 112.903, 80.6453, 119.355, 61.2905, 103.226, 54.8388, 64.5161, -9.6773, 19.3548, -29.0321, 41.9355, -61.2902, 74.1936, -122.581, 67.742, -138.71, 35.4839, -141.935)
 
 [node name="JumpAudio" type="AudioStreamPlayer2D" parent="."]
 position = Vector2(3.22581, 38.7097)
 stream = ExtResource("12_pu2lt")
 
-[node name="Particles" type="CPUParticles2D" parent="."]
-position = Vector2(22.5807, 119.355)
-rotation = 3.14159
+[node name="StepDust_Left1" type="CPUParticles2D" parent="."]
+position = Vector2(22.5806, 129.032)
+rotation = -1.5708
 emitting = false
+amount = 16
 texture = ExtResource("16_fd4e3")
+lifetime = 5.0
 one_shot = true
-explosiveness = 1.0
+speed_scale = 1.5
+direction = Vector2(0, -30)
 spread = 90.0
-gravity = Vector2(-30, -90)
+gravity = Vector2(-90, 0)
 initial_velocity_min = 50.0
 initial_velocity_max = 150.0
 scale_amount_min = 0.25
+scale_amount_max = 0.75
+color = Color(0, 0.0431373, 0.129412, 1)
+
+[node name="StepDust_Right1" type="CPUParticles2D" parent="."]
+position = Vector2(22.5806, 129.032)
+rotation = -1.5708
+emitting = false
+amount = 16
+texture = ExtResource("16_fd4e3")
+lifetime = 5.0
+one_shot = true
+speed_scale = 1.5
+direction = Vector2(0, -30)
+spread = 90.0
+gravity = Vector2(-90, 0)
+initial_velocity_min = 50.0
+initial_velocity_max = 150.0
+scale_amount_min = 0.25
+scale_amount_max = 0.75
+color = Color(0, 0.0431373, 0.129412, 1)
+
+[node name="StepDust_Left2" type="CPUParticles2D" parent="."]
+position = Vector2(22.5806, 129.032)
+rotation = -1.5708
+emitting = false
+amount = 16
+texture = ExtResource("16_fd4e3")
+lifetime = 5.0
+one_shot = true
+speed_scale = 1.5
+direction = Vector2(0, -30)
+spread = 90.0
+gravity = Vector2(-90, 0)
+initial_velocity_min = 50.0
+initial_velocity_max = 150.0
+scale_amount_min = 0.25
+scale_amount_max = 0.75
+color = Color(0, 0.0431373, 0.129412, 1)
+
+[node name="StepDust_Right2" type="CPUParticles2D" parent="."]
+position = Vector2(22.5806, 129.032)
+rotation = -1.5708
+emitting = false
+amount = 16
+texture = ExtResource("16_fd4e3")
+lifetime = 5.0
+one_shot = true
+speed_scale = 1.5
+direction = Vector2(0, -30)
+spread = 90.0
+gravity = Vector2(-90, 0)
+initial_velocity_min = 50.0
+initial_velocity_max = 150.0
+scale_amount_min = 0.25
+scale_amount_max = 0.75
+color = Color(0, 0.0431373, 0.129412, 1)
+
+[node name="JumpDust" type="CPUParticles2D" parent="."]
+position = Vector2(22.5806, 129.032)
+rotation = -1.5708
+emitting = false
+amount = 45
+texture = ExtResource("16_fd4e3")
+lifetime = 3.0
+one_shot = true
+explosiveness = 1.0
+direction = Vector2(0, 90)
+spread = 90.0
+gravity = Vector2(0, 90)
+initial_velocity_min = 50.0
+initial_velocity_max = 300.0
+scale_amount_min = 0.25
 scale_amount_max = 0.5
-color = Color(1, 1, 0, 1)
+color = Color(0, 0.0431373, 0.129412, 1)

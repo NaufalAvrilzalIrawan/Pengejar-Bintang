@@ -2,6 +2,8 @@ extends Area2D
 
 @export var speed: float = 400.0  # kecepatan proyektil
 @export var direction: Vector2 = Vector2.LEFT  # arah default (ke kiri)
+@onready var DeflectedParticles: CPUParticles2D = $DeflectedParticles
+@onready var TrailParticles: CPUParticles2D = $TrailParticles
 
 var deflected := false
 
@@ -28,18 +30,15 @@ func _on_area_entered(area: Area2D) -> void:
 		set_deferred("monitorable", false)
 		set_deferred("monitoring", false)
 
-		var collision = find_child("CollisionPolygon2D")
+		var collision = find_child("CollisionShape2D")
 		if collision:
 			collision.disabled = true
 		
 		# 🔹 Sembunyikan sprite proyektil
 		if has_node("AnimatedSprite2D"):
 			$AnimatedSprite2D.hide()
-		
-		# 🔹 Aktifkan efek partikel defleksi
-		if has_node("DeflectedParticles"):
-			var particles = $DeflectedParticles
-			particles.emitting = true
+			DeflectedParticles.emitting = true
+			TrailParticles.emitting = false
 		
 		# 🔹 Tunggu efek partikel selesai (misal 1 detik), lalu hapus
 		await get_tree().create_timer(1).timeout

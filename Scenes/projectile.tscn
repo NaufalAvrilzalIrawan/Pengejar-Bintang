@@ -47,7 +47,7 @@ shape = SubResource("CircleShape2D_yr2qt")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_ay8ps")
 autoplay = "default"
-frame_progress = 0.564986
+frame_progress = 0.487298
 
 [node name="DeflectedParticles" type="CPUParticles2D" parent="."]
 rotation = 3.14159
@@ -60,6 +60,20 @@ speed_scale = 5.0
 explosiveness = 1.0
 lifetime_randomness = 1.0
 spread = 90.0
+gravity = Vector2(0, 0)
+initial_velocity_max = 50.0
+scale_amount_min = 0.25
+scale_amount_max = 0.75
+color = Color(1, 0, 0, 0.705882)
+
+[node name="TrailParticles" type="CPUParticles2D" parent="."]
+rotation = 3.14159
+amount = 10
+texture = ExtResource("8_rsyq6")
+lifetime = 5.0
+speed_scale = 5.0
+lifetime_randomness = 1.0
+spread = 0.0
 gravity = Vector2(0, 0)
 initial_velocity_max = 50.0
 scale_amount_min = 0.25

@@ -4,6 +4,9 @@ extends Node
 @onready var player: CharacterBody2D = $Player
 @onready var camera: Camera2D = $Camera2D
 @onready var moon: Sprite2D = $BG/Moon
+@export var moon_speed: float = 30.0        # kecepatan naik (pixel per detik)
+@export var moon_travel_distance: float = 200.0  # jarak maksimum sebelum reset
+var moon_start_y: float
 @onready var score_label: Label = $BG/Control/LabelScore
 @onready var high_score_label: Label = $BG/Control2/LabelHigh
 @onready var coin_label: Label = $BG/Control5/LabelCoin
@@ -22,7 +25,6 @@ const LAND_SCENE := preload("res://Scenes/land.tscn")
 
 #Game Configuration
 @export var START_POS := Vector2(150, 500)
-@export var MOON_START := Vector2(698, 330)
 @export var START_SPEED : float = 250.0
 @export var MAX_SPEED : float = 3000
 @export var MAX_DIFFICULTY : int = 2
@@ -69,6 +71,7 @@ var _last_spawn_x: float = -INF
 
 func _ready():
 	# Load the high score from the singleton
+	moon_start_y = moon.position.y
 	high_score = GameData.high_score
 	high_score_label.text = "HIGH SCORE: %d" % int(high_score)
 	
@@ -134,7 +137,6 @@ func new_game() -> void:
 	#Reset positions
 	player.position = START_POS
 	player.velocity = Vector2.ZERO
-	moon.position = MOON_START
 	
 	#Generate first floor
 	spawn_land_segment(Vector2(START_POS.x, LAND_Y_POSITION))
@@ -162,6 +164,12 @@ func _process(delta: float) -> void:
 	generate_land()
 	cleanup_nodes()
 	
+	# Gerakkan bulan naik ke atas
+	moon.position.y -= moon_speed * delta
+
+	# Jika sudah melewati batas jarak, reset ke posisi awal
+	if moon.position.y <= moon_start_y - moon_travel_distance:
+		moon.position.y = moon_start_y
 	if player.position.y > 700:
 		game_over()
 
@@ -190,7 +198,7 @@ func update_game_state(delta: float) -> void:
 		moon.position.y -= speed * delta * 0.005
 
 func generate_land() -> void:
-	var spawn_threshold = camera.position.x + screen_size.x
+	var spawn_threshold = camera.position.x + screen_size.x + 50
 	
 	#Prevent Spawn at same place
 	if _last_spawn_x < spawn_threshold:
