@@ -1,34 +1,46 @@
 extends Area2D
 
-var base_y: float
-var range : float = 50
-var speed: float = 3
-var time: float = 0
+@export var speed: float = 400.0  # kecepatan proyektil
+@export var direction: Vector2 = Vector2.LEFT  # arah default (ke kiri)
 
-# Called when the node enters the scene tree for the first time.
+var deflected := false
+
 func _ready() -> void:
-	base_y = position.y
-	range = randf_range(20,80)
-	speed = randf_range(2.5, 3.5)
+	direction = direction.normalized()
 
-func _physics_process(delta):
-	time += delta
-	
-	position.y = base_y + sin(time * speed) * range
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
-
-
-
+func _physics_process(delta: float) -> void:
+	if not deflected:
+		position += direction * speed * delta
 
 func _on_area_entered(area: Area2D) -> void:
+	if deflected:
+		return
+	
 	if area.name == "Barrier":
-		visible = false
-		set_process_mode(Node.PROCESS_MODE_DISABLED)
+		deflected = true
 		
-		if find_child("CollisionPolygon2D"):
-			find_child("CollisionPolygon2D").disabled = true
+		# 🔹 Beri tahu barrier bahwa proyektil berhasil ditangkis
+		if area.has_method("on_projectile_blocked"):
+			area.on_projectile_blocked()
+		
+		# 🔹 Hentikan pergerakan & deteksi tabrakan
+		set_physics_process(false)
 		set_deferred("monitorable", false)
 		set_deferred("monitoring", false)
+
+		var collision = find_child("CollisionPolygon2D")
+		if collision:
+			collision.disabled = true
+		
+		# 🔹 Sembunyikan sprite proyektil
+		if has_node("AnimatedSprite2D"):
+			$AnimatedSprite2D.hide()
+		
+		# 🔹 Aktifkan efek partikel defleksi
+		if has_node("DeflectedParticles"):
+			var particles = $DeflectedParticles
+			particles.emitting = true
+		
+		# 🔹 Tunggu efek partikel selesai (misal 1 detik), lalu hapus
+		await get_tree().create_timer(1).timeout
+		queue_free()

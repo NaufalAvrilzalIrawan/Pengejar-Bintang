@@ -3,23 +3,30 @@
 [ext_resource type="PackedScene" uid="uid://c7231434815qv" path="res://Scenes/bg.tscn" id="1_8gbba"]
 [ext_resource type="Script" uid="uid://hyrvacbb8i5c" path="res://Scripts/main.gd" id="1_jjvhh"]
 [ext_resource type="PackedScene" uid="uid://c0cf27ribiu3s" path="res://Scenes/player.tscn" id="3_kry3j"]
-[ext_resource type="AudioStream" uid="uid://b6dqrm3pncrf2" path="res://Assets/Audio/08 Pale Court (Hollow Knight_ Gods _ Nightmares)(MP3_160K).mp3" id="4_jjvhh"]
+[ext_resource type="AudioStream" uid="uid://1ja477gll3vo" path="res://Assets/Audio/Starchaser BGM.wav" id="4_kry3j"]
 [ext_resource type="AudioStream" uid="uid://chtqkqkxxv8ip" path="res://Assets/Audio/8-Bit Coin Sound Effect.wav" id="5_kry3j"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1_jjvhh")
+START_POS = Vector2(250, 500)
+MAX_SPEED = 2500.0
+LAND_Y_POSITION = 600.0
+PROJECTILE_HEIGHTS = Array[int]([300, 400])
+COIN_GROUND_FLOAT = 30.0
+barrier_cooldown = 5.0
 
 [node name="Player" parent="." instance=ExtResource("3_kry3j")]
 position = Vector2(66, 499)
 
 [node name="Camera2D" type="Camera2D" parent="."]
-position = Vector2(576, 324)
+anchor_mode = 0
+
+[node name="BG" parent="." instance=ExtResource("1_8gbba")]
+layer = -1
 
 [node name="BGM" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("4_jjvhh")
-volume_db = -10.306
-
-[node name="BG" parent="BGM" instance=ExtResource("1_8gbba")]
+stream = ExtResource("4_kry3j")
+volume_db = 10.0
 
 [node name="PopupMenu" type="PopupMenu" parent="."]
 position = Vector2i(500, 163)
@@ -34,3 +41,4 @@ item_2/id = 2
 
 [node name="CoinSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("5_kry3j")
+volume_db = -5.0

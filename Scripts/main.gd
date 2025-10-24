@@ -9,6 +9,7 @@ extends Node
 @onready var coin_label: Label = $BG/Control5/LabelCoin
 @onready var restart_button: Button = $BG/Control3/Restart
 @onready var start_label: Label = $BG/Control4/Start
+@onready var title_label: Label = $BG/Control4/Title
 
 #Preload Scenes
 const STONE_1_SCENE := preload("res://Scenes/stone_1.tscn")
@@ -20,8 +21,7 @@ const LAND_SCENE := preload("res://Scenes/land.tscn")
 
 
 #Game Configuration
-@export var START_POS := Vector2(150, 485)
-@export var CAM_START := Vector2(576, 324)
+@export var START_POS := Vector2(150, 500)
 @export var MOON_START := Vector2(698, 330)
 @export var START_SPEED : float = 250.0
 @export var MAX_SPEED : float = 3000
@@ -33,6 +33,10 @@ const LAND_SCENE := preload("res://Scenes/land.tscn")
 @export var PROJECTILE_HEIGHTS: Array[int] = [200, 300, 400]
 @export var COIN_AIR_HEIGHTS: Array[int] = [300, 400]
 @export var COIN_GROUND_FLOAT : float = 60.0 # How high coins float above the ground
+@export var BARRIER_DURATION : float = 1 # How high coins float above the ground
+@export var barrier_cooldown: float = 2.0 # durasi cooldown (detik)
+var barrier_ready: bool = true
+
 
 #Land Variables
 var LAND_SEGMENT_WIDTH: float = 0.0
@@ -100,15 +104,14 @@ func new_game() -> void:
 	difficulty = 0
 	_last_spawn_x = -INF
 
-	#Reset UI
-	score_label.text = "SCORE: 0"
-	coin_label.text = "KOIN: 0"
 	start_label.show()
+	title_label.show()
 	restart_button.hide()
 	
-	_next_stone_spawn_x = player.position.x + screen_size.x
-	_next_projectile_spawn_x = player.position.x + screen_size.x + 400
-	_next_coin_spawn_x = player.position.x + screen_size.x + 200
+	camera.position = Vector2(player.position.x, camera.position.y)
+	_next_stone_spawn_x = camera.position.x + screen_size.x
+	_next_projectile_spawn_x = camera.position.x + screen_size.x
+	_next_coin_spawn_x = camera.position.x + screen_size.x
 	
 	#Cleanup
 	for obstacle in obstacles:
@@ -122,11 +125,15 @@ func new_game() -> void:
 	for segment in land_segments:
 		segment.queue_free()
 	land_segments.clear()
+
+	# 🧹 Tambahkan ini:
+	for st in stones:
+		st.queue_free()
+	stones.clear()
 	
 	#Reset positions
 	player.position = START_POS
 	player.velocity = Vector2.ZERO
-	camera.position = CAM_START
 	moon.position = MOON_START
 	
 	#Generate first floor
@@ -162,12 +169,13 @@ func _process(delta: float) -> void:
 func start_game() -> void:
 	game_running = true
 	start_label.hide()
+	title_label.hide()
 	
 
 func update_game_state(delta: float) -> void:
 	#Update speed and difficulty
 	speed = min(START_SPEED + (score / SPEED_INCREASE_FACTOR), MAX_SPEED)
-	difficulty = mini(int(score / 1000), MAX_DIFFICULTY)
+	difficulty = min(int(score / 1000), MAX_DIFFICULTY)
 	
 	#Move player and camera
 	player.position.x += speed * delta
@@ -213,25 +221,50 @@ func is_in_safe_zone(pos_x: float) -> bool:
 			return true
 	return false
 
+func get_land_y_at_x(x: float) -> Variant:
+	for seg in land_segments:
+		var seg_start = seg.position.x
+		var seg_end = seg_start + LAND_SEGMENT_WIDTH
+		if x >= seg_start and x <= seg_end:
+			return seg.position.y
+	return null
+
+
 func generate_stones():
-	var camera_right_edge = camera.position.x + (screen_size.x / 2)
-	if camera_right_edge > _next_stone_spawn_x:
-		var st_type = stone_type[randi() % stone_type.size()]
-		var max_st = difficulty + 1
-		var last_spawned_stone_pos_x = _next_stone_spawn_x
+	var camera_right_edge = camera.position.x + (screen_size.x / 2) + 750 
+	if camera_right_edge <= _next_stone_spawn_x:
+		return
 
-		for i in range(randi() % max_st + 1):
-			var st_x : float = last_spawned_stone_pos_x + (i * 100)
-			if is_in_safe_zone(st_x):
-				continue
-			var st = st_type.instantiate()
-			var st_height = st.get_node("Sprite2D").texture.get_height()
-			var st_scale = st.get_node("Sprite2D").scale
-			var st_y : int = screen_size.y - land_height - (st_height * st_scale.y / 2) + 5 
+	var st_type = stone_type[randi() % stone_type.size()]
+	var max_st = difficulty + 1
+	var base_x = _next_stone_spawn_x
 
-			add_stones(st, st_x, st_y)
-		_next_stone_spawn_x = last_spawned_stone_pos_x + randi_range(400, 800)
-		
+	var spawned_any = false
+	for i in range(randi() % max_st + 1):
+		var st_x = base_x + (i * 100)
+
+		# Jika tidak ada tanah di posisi st_x, skip (atau cari nearest land jika mau)
+		var land_y = get_land_y_at_x(st_x)
+		if land_y == null:
+			continue
+
+		# Hindari spawn terlalu dekat tepian (safe zone)
+		if is_in_safe_zone(st_x):
+			continue
+
+		var st = st_type.instantiate()
+		var sprite_node = st.get_node_or_null("Sprite2D") as Sprite2D
+		var st_height = (sprite_node.texture.get_height() * sprite_node.scale.y) if sprite_node and sprite_node.texture else 32
+		var st_y = land_y - (st_height / 2)
+
+		add_stones(st, st_x, st_y)
+		spawned_any = true
+
+	# Set next spawn (jika tidak spawn apapun, coba sedikit maju agar tidak stuck)
+	if spawned_any:
+		_next_stone_spawn_x = base_x + randi_range(400, 800)
+	else:
+		_next_stone_spawn_x = camera_right_edge + 200
 
 func generate_projectiles():
 	var camera_right_edge = camera.position.x + (screen_size.x / 2)
@@ -241,7 +274,7 @@ func generate_projectiles():
 		var st = PROJECTILE_SCENE.instantiate()
 		
 		#position to camera
-		var st_x = camera_right_edge + 200
+		var st_x = camera_right_edge + 750
 		var st_y = PROJECTILE_HEIGHTS[randi() % PROJECTILE_HEIGHTS.size()]
 
 		add_projectile(st, st_x, st_y)
@@ -254,11 +287,11 @@ func generate_coins():
 	
 	# Check if it's time to spawn a new coin cluster
 	if camera_right_edge > _next_coin_spawn_x:
-		var spawn_x_start = camera_right_edge + 150 # Start spawning ahead of camera
+		var spawn_x_start = camera_right_edge + 750 # Start spawning ahead of camera
 		
 		# Use our new function to make sure we don't spawn over a deadly gap
 		if not is_on_land(spawn_x_start):
-			_next_coin_spawn_x = camera_right_edge + 100 # Try again soon
+			_next_coin_spawn_x = camera_right_edge + 750 # Try again soon
 			return
 
 		var spawn_y: float
@@ -303,35 +336,21 @@ func _on_coin_collected(body, coin_instance):
 	if body.name != "Player":
 		return
 	
-	# Tambah skor & koin
 	score += 10
 	score_label.text = "SCORE: %d" % int(score)
 	coin_count += 1
 	coin_label.text = "COINS: %d" % coin_count
 	
-	# Mainkan SFX (kalau ada)
 	if has_node("CoinSound"):
 		$CoinSound.play()
 	
-	# Pastikan coin_instance masih valid sebelum animasi
 	if coin_instance == null or not is_instance_valid(coin_instance):
 		return
 	
-	# Hapus dari daftar coins supaya tidak diproses ulang
 	if coins.has(coin_instance):
 		coins.erase(coin_instance)
-	
-	# Tambahkan animasi pickup sederhana (membesar lalu menghilang)
-	var tween := create_tween()
-	tween.tween_property(coin_instance, "scale", Vector2(1.5, 1.5), 0.1)
-	tween.tween_property(coin_instance, "scale", Vector2.ZERO, 0.2)
-	tween.tween_property(coin_instance, "modulate:a", 0.0, 0.2)
-	
-	# Setelah animasi selesai, hapus node (dengan cek validasi)
-	tween.finished.connect(func():
-		if is_instance_valid(coin_instance):
-			coin_instance.queue_free()
-	)
+
+
 
 func add_stones(st, x, y):
 	st.position = Vector2 (x,y)
@@ -368,6 +387,9 @@ func cleanup_nodes() -> void:
 			coins.remove_at(i)
 
 func toggle_barrier() -> void:
+	if not barrier_ready:
+		return # masih cooldown, jangan aktifkan lagi
+
 	if current_barrier:
 		current_barrier.queue_free()
 		current_barrier = null
@@ -376,10 +398,34 @@ func toggle_barrier() -> void:
 		player.add_child(current_barrier)
 		current_barrier.position = Vector2.ZERO
 
-		await get_tree().create_timer(0.3).timeout
-		if current_barrier:
-			current_barrier.queue_free()
-			current_barrier = null
+		# Hubungkan sinyal saat menangkis proyektil
+		current_barrier.projectile_blocked.connect(_on_barrier_blocked)
+
+		# Jalankan durasi & cooldown dari sini
+		run_barrier_duration()
+		start_barrier_cooldown()
+
+
+# 🔄 Fungsi durasi utama (pakai BARRIER_DURATION dari scene utama)
+func run_barrier_duration() -> void:
+	await get_tree().create_timer(BARRIER_DURATION).timeout
+	if current_barrier:
+		await current_barrier.play_end_animation()
+		current_barrier = null
+
+
+# ⏱️ Jalankan cooldown setelah barrier diaktifkan
+func start_barrier_cooldown() -> void:
+	barrier_ready = false
+	await get_tree().create_timer(barrier_cooldown).timeout
+	barrier_ready = true
+
+
+# ⚡ Kalau projectile kena barrier, reset cooldown (langsung bisa aktif lagi)
+func _on_barrier_blocked() -> void:
+	barrier_ready = true
+
+
 
 # This function checks if a given x-coordinate is over any land segment
 func is_on_land(pos_x: float) -> bool:
