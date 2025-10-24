@@ -19,11 +19,11 @@ func _on_area_entered(area: Area2D) -> void:
 	if area.name == "Barrier":
 		deflected = true
 		
-		# 🔹 Beri tahu barrier bahwa proyektil berhasil ditangkis
+		# Beri tahu barrier bahwa proyektil berhasil ditangkis
 		if area.has_method("on_projectile_blocked"):
 			area.on_projectile_blocked()
 		
-		# 🔹 Hentikan pergerakan & deteksi tabrakan
+		# Hentikan pergerakan & deteksi tabrakan
 		set_physics_process(false)
 		set_deferred("monitorable", false)
 		set_deferred("monitoring", false)
@@ -32,15 +32,21 @@ func _on_area_entered(area: Area2D) -> void:
 		if collision:
 			collision.disabled = true
 		
-		# 🔹 Sembunyikan sprite proyektil
+		# Sembunyikan sprite proyektil
 		if has_node("AnimatedSprite2D"):
 			$AnimatedSprite2D.hide()
 		
-		# 🔹 Aktifkan efek partikel defleksi
+		# Aktifkan efek partikel defleksi
 		if has_node("DeflectedParticles"):
 			var particles = $DeflectedParticles
 			particles.emitting = true
 		
-		# 🔹 Tunggu efek partikel selesai (misal 1 detik), lalu hapus
+		# Tunggu efek partikel selesai (misal 1 detik), lalu hapus
 		await get_tree().create_timer(1).timeout
 		queue_free()
+
+
+func _on_body_entered(body: Node2D) -> void:
+	if body.is_in_group("player"):
+		get_tree().root.get_node("Main").game_over()
+		queue_free() # Destroy the projectile

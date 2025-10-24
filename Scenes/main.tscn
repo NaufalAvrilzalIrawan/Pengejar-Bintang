@@ -9,13 +9,12 @@
 [node name="Main" type="Node"]
 script = ExtResource("1_jjvhh")
 START_POS = Vector2(250, 500)
-MAX_SPEED = 2500.0
 LAND_Y_POSITION = 600.0
 PROJECTILE_HEIGHTS = Array[int]([300, 400])
 COIN_GROUND_FLOAT = 30.0
 barrier_cooldown = 5.0
 
-[node name="Player" parent="." instance=ExtResource("3_kry3j")]
+[node name="Player" parent="." groups=["player"] instance=ExtResource("3_kry3j")]
 position = Vector2(66, 499)
 
 [node name="Camera2D" type="Camera2D" parent="."]
