@@ -1,16 +1,16 @@
-[gd_scene load_steps=6 format=3 uid="uid://b0icltu2su8cx"]
+[gd_scene load_steps=7 format=3 uid="uid://b0icltu2su8cx"]
 
 [ext_resource type="PackedScene" uid="uid://c7231434815qv" path="res://Scenes/bg.tscn" id="1_8gbba"]
 [ext_resource type="Script" uid="uid://hyrvacbb8i5c" path="res://Scripts/main.gd" id="1_jjvhh"]
 [ext_resource type="PackedScene" uid="uid://c0cf27ribiu3s" path="res://Scenes/player.tscn" id="3_kry3j"]
 [ext_resource type="AudioStream" uid="uid://1ja477gll3vo" path="res://Assets/Audio/Starchaser BGM.wav" id="4_kry3j"]
 [ext_resource type="AudioStream" uid="uid://chtqkqkxxv8ip" path="res://Assets/Audio/8-Bit Coin Sound Effect.wav" id="5_kry3j"]
+[ext_resource type="AudioStream" uid="uid://cnqty4d5ngif" path="res://Assets/Audio/Game_Finished.wav" id="6_21xkr"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1_jjvhh")
 moon_speed = 10.0
 moon_travel_distance = 900.0
-START_POS = Vector2(250, 500)
 MAX_SPEED = 2500.0
 LAND_Y_POSITION = 560.0
 PROJECTILE_HEIGHTS = Array[int]([300, 400])
@@ -44,3 +44,9 @@ item_2/id = 2
 [node name="CoinSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("5_kry3j")
 volume_db = -5.0
+
+[node name="Game_Finished" type="AudioStreamPlayer2D" parent="."]
+position = Vector2(66, 499)
+scale = Vector2(0.31, 0.31)
+stream = ExtResource("6_21xkr")
+volume_db = 15.0

@@ -11,8 +11,10 @@ var moon_start_y: float
 @onready var high_score_label: Label = $BG/Control2/LabelHigh
 @onready var coin_label: Label = $BG/Control5/LabelCoin
 @onready var restart_button: Button = $BG/Control3/Restart
-@onready var start_label: Label = $BG/Control4/Start
+@onready var Game_Over: Label = $BG/Control3/Game_Over
 @onready var title_label: Label = $BG/Control4/Title
+@onready var start_button: Button = $BG/Control4/StartButton
+@onready var Game_Finished: AudioStreamPlayer2D = $Game_Finished
 
 #Preload Scenes
 const STONE_1_SCENE := preload("res://Scenes/stone_1.tscn")
@@ -76,6 +78,7 @@ func _ready():
 	high_score_label.text = "HIGH SCORE: %d" % int(high_score)
 	
 	screen_size = get_window().size
+	start_button.pressed.connect(on_start_button_pressed)
 	restart_button.pressed.connect(reload_game)
 	
 	#Set Land Width
@@ -93,6 +96,9 @@ func _ready():
 	_camera_cleanup_threshold = screen_size.x / 2 + 200
 
 	new_game()
+func on_start_button_pressed() -> void:
+	start_button.hide()  # sembunyikan tombol start
+	start_game()         # panggil animasi masuk kamera
 
 func reload_game() -> void:
 	get_tree().reload_current_scene()
@@ -107,9 +113,11 @@ func new_game() -> void:
 	difficulty = 0
 	_last_spawn_x = -INF
 
-	start_label.show()
+	start_button.show()
 	title_label.show()
 	restart_button.hide()
+	Game_Over.hide()
+	player.hide()
 	
 	camera.position = Vector2(player.position.x, camera.position.y)
 	_next_stone_spawn_x = camera.position.x + screen_size.x
@@ -147,13 +155,16 @@ func new_game() -> void:
 	$BGM.play()
 
 func _input(event: InputEvent) -> void:
+	# Hanya izinkan input jika game sedang berjalan
+	if not game_running:
+		return
+
 	if event.is_action_pressed("barrier"):
 		toggle_barrier()
 
+
 func _process(delta: float) -> void:
 	if not game_running:
-		if Input.is_action_just_pressed("jump"):
-			start_game()
 		return
 	
 	generate_stones()
@@ -175,9 +186,27 @@ func _process(delta: float) -> void:
 
 
 func start_game() -> void:
-	game_running = true
-	start_label.hide()
+	
+	start_button.hide()
 	title_label.hide()
+	player.show()
+
+	# Mulai animasi karakter masuk ke layar
+	var tween = create_tween()
+	var target_pos = START_POS
+	var start_pos = START_POS - Vector2(150,0) # mulai dari luar layar kiri
+	
+	player.position = start_pos
+	player.velocity = Vector2.ZERO
+	game_running = false # jangan mulai dulu gameplay-nya
+
+	# Tween untuk memindahkan karakter ke posisi START_POS
+	tween.tween_property(player, "position", target_pos, 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+	# Setelah animasi selesai, baru mulai game
+	await tween.finished
+	game_running = true
+
 	
 
 func update_game_state(delta: float) -> void:
@@ -421,19 +450,15 @@ func run_barrier_duration() -> void:
 		await current_barrier.play_end_animation()
 		current_barrier = null
 
-
 # ⏱️ Jalankan cooldown setelah barrier diaktifkan
 func start_barrier_cooldown() -> void:
 	barrier_ready = false
 	await get_tree().create_timer(barrier_cooldown).timeout
 	barrier_ready = true
 
-
 # ⚡ Kalau projectile kena barrier, reset cooldown (langsung bisa aktif lagi)
 func _on_barrier_blocked() -> void:
 	barrier_ready = true
-
-
 
 # This function checks if a given x-coordinate is over any land segment
 func is_on_land(pos_x: float) -> bool:
@@ -449,7 +474,15 @@ func game_over() -> void:
 		GameData.high_score = score
 		# Now, call the save function to write it to the file!
 		GameData.save_data()
-
+		
+	if Game_Finished:
+		$Game_Finished.play()
+		$BGM.stop()
+		
+	if player and is_instance_valid(player):
+		player.play_game_over_anim()
+	await get_tree().create_timer(1).timeout
 	get_tree().paused = true
 	game_running = false
 	restart_button.show()
+	Game_Over.show()

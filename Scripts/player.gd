@@ -9,16 +9,18 @@ const DIVE_SPEED : int = 900
 var barrier_scene = preload("res://Scenes/barrier.tscn")
 var barrier_instance = null
 var has_barrier: bool = false
+var is_dead: bool = false
 
 # ======== NODE REF =========
 @onready var collision_running: CollisionShape2D = $CollisionShapeRunning
 @onready var collision_jumping: CollisionPolygon2D = $CollisionShapeJumping
+@onready var collision_falling: CollisionPolygon2D = $CollisionShapeJumping
 @onready var anim: AnimatedSprite2D = $AnimatedSprite2D
 @onready var JumpDust: CPUParticles2D = $JumpDust
 @onready var StepDust_Left1: CPUParticles2D = $StepDust_Left1
 @onready var StepDust_Right1: CPUParticles2D = $StepDust_Right1
-@onready var StepDust_Left2: CPUParticles2D = $StepDust_Mid2
-@onready var StepDust_Right2: CPUParticles2D = $StepDust_Mid2
+@onready var StepDust_Left2: CPUParticles2D = $StepDust_Left2
+@onready var StepDust_Right2: CPUParticles2D = $StepDust_Right2
 @onready var JumpAudio: AudioStreamPlayer2D = $JumpAudio
 
 # ======== STATUS =========
@@ -28,11 +30,15 @@ var last_step_frame := -1  # untuk deteksi frame langkah sebelumnya
 
 func _physics_process(delta):
 	velocity.y += GRAVITY * delta
+	if is_dead:
+		move_and_slide()  # biar bisa jatuh sedikit sebelum freeze
+		return
 
 	if is_on_floor():
 		# Jika baru mendarat, mainkan debu mendarat
 		collision_running.disabled = false
 		collision_jumping.disabled = true
+		collision_falling.disabled = true
 
 		if Input.is_action_pressed("jump"):
 			velocity.y = JUMP_SPEED
@@ -46,6 +52,7 @@ func _physics_process(delta):
 	else:
 		collision_running.disabled = true
 		collision_jumping.disabled = false
+		collision_falling.disabled = true
 
 		if Input.is_action_just_pressed("dive"):
 			velocity.y = DIVE_SPEED
@@ -110,3 +117,25 @@ func play_run_dust():
 
 	elif anim.frame not in left_step_frames1 and anim.frame not in right_step_frames1 and anim.frame not in left_step_frames2 and anim.frame not in right_step_frames2:
 		last_step_frame = -1
+
+func play_game_over_anim():
+	# Aktifkan gravitasi normal supaya jatuh
+	is_dead = true 
+	velocity = Vector2.ZERO  # reset gerak horizontal
+	# Mainkan animasi
+	if anim:
+		anim.play("Fall")
+
+	collision_running.disabled = true
+	collision_jumping.disabled = true
+	collision_falling.disabled = false
+	# Matikan partikel debu
+	if JumpDust: JumpDust.emitting = false
+	if StepDust_Left1: StepDust_Left1.emitting = false
+	if StepDust_Right1: StepDust_Right1.emitting = false
+	if StepDust_Left2: StepDust_Left2.emitting = false
+	if StepDust_Right2: StepDust_Right2.emitting = false
+
+	# Putar animasi "Death" (pastikan ada di AnimatedSprite2D)
+	if anim:
+		anim.play("Fall")

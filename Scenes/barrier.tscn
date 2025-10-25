@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://b052dyerm6pcv"]
+[gd_scene load_steps=18 format=3 uid="uid://b052dyerm6pcv"]
 
 [ext_resource type="Script" uid="uid://m2lpwxstee6s" path="res://Scripts/barrier.gd" id="1_uvob8"]
 [ext_resource type="Texture2D" uid="uid://c4s2exnk1tifo" path="res://Assets/Graphics/Barrier/Frame 1.png" id="2_6ldds"]
@@ -13,6 +13,8 @@
 [ext_resource type="Texture2D" uid="uid://c83a4j731gr2e" path="res://Assets/Graphics/Barrier/Frame 10.png" id="11_p3ata"]
 [ext_resource type="Texture2D" uid="uid://i8xpngvp8xso" path="res://Assets/Graphics/Barrier/Frame 11.png" id="12_xryxy"]
 [ext_resource type="Texture2D" uid="uid://22ttj2tk4dyr" path="res://Assets/Graphics/Barrier/Frame 12.png" id="13_s01yy"]
+[ext_resource type="AudioStream" uid="uid://ylggnv5j26la" path="res://Assets/Audio/Energy Shield Activation Sound Effect.wav" id="14_6ldds"]
+[ext_resource type="AudioStream" uid="uid://caottda0eywls" path="res://Assets/Audio/Energy Shield Deactivation Sound Effect.wav" id="15_lihvt"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_uvob8"]
 radius = 188.13
@@ -96,6 +98,9 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": ExtResource("2_6ldds")
+}, {
+"duration": 1.0,
+"texture": null
 }],
 "loop": false,
 "name": &"end",
@@ -107,7 +112,6 @@ z_index = -1
 script = ExtResource("1_uvob8")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-visible = false
 shape = SubResource("CircleShape2D_uvob8")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
@@ -116,6 +120,14 @@ self_modulate = Color(1, 0.960784, 0.156863, 1)
 sprite_frames = SubResource("SpriteFrames_6xsk2")
 animation = &"end"
 autoplay = "active"
+
+[node name="SFX_Activate" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("14_6ldds")
+volume_db = 10.0
+
+[node name="SFX_Deactivate" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("15_lihvt")
+volume_db = 10.0
 
 [connection signal="area_entered" from="." to="." method="_on_area_entered"]
 [connection signal="body_entered" from="." to="." method="_on_body_entered"]
