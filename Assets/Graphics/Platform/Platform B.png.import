@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bo4eu8dwqm01h"
-path="res://.godot/imported/Platform D.png-251935e99f8ae1133ba104ff8340fc70.ctex"
+uid="uid://c28lhak1a0cmi"
+path="res://.godot/imported/Platform B.png-264c5e17eb44ac425d3c37e1558a228b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Graphics/Object/Platform D.png"
-dest_files=["res://.godot/imported/Platform D.png-251935e99f8ae1133ba104ff8340fc70.ctex"]
+source_file="res://Assets/Graphics/Platform/Platform B.png"
+dest_files=["res://.godot/imported/Platform B.png-264c5e17eb44ac425d3c37e1558a228b.ctex"]
 
 [params]
 

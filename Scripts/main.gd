@@ -30,6 +30,7 @@ const LAND_SCENE := preload("res://Scenes/land.tscn")
 
 
 #Game Configuration
+@export var Random_Generate := true
 @export var START_POS := Vector2(150, 500)
 @export var MOON_START := Vector2(698, 330)
 @export var START_SPEED : float = 300.0
@@ -94,7 +95,7 @@ func _ready():
 	
 	#Set Land Width
 	var temp_land = LAND_SCENE.instantiate()
-	land_height = temp_land.get_node("Sprite2D").texture.get_height()
+	land_height = temp_land.get_node("Ground").texture.get_height()
 	if temp_land.get_child_count() > 0:
 		var child = temp_land.get_child(0)
 		if child is Sprite2D:
@@ -186,11 +187,11 @@ func _input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	if not game_running:
 		return
-	
-	generate_stones()
-	generate_projectiles()
-	generate_coins()
-	generate_enemies()
+	if Random_Generate == true:
+		generate_stones()
+		generate_projectiles()
+		generate_coins()
+		generate_enemies()
 
 	update_game_state(delta)
 	generate_land()
