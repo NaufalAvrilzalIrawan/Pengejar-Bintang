@@ -124,16 +124,12 @@ func new_game() -> void:
 	speed = START_SPEED
 	difficulty = 0
 	_last_spawn_x = -INF
-<<<<<<< HEAD
 
 	start_button.show()
-=======
 	
 	score_label.text = "SCORE: 0"
 	coin_label.text = "COINS: 0"
 	kills_label.text = "KILLS: 0"
-	start_label.show()
->>>>>>> 31fcbd003e1a06c32a571e3b311ba00ee5b2957b
 	title_label.show()
 	restart_button.hide()
 	Game_Over.hide()
@@ -535,12 +531,8 @@ func run_barrier_duration() -> void:
 		await current_barrier.play_end_animation()
 		current_barrier = null
 
-<<<<<<< HEAD
-# ⏱️ Jalankan cooldown setelah barrier diaktifkan
-=======
 
 # Jalankan cooldown setelah barrier diaktifkan
->>>>>>> 31fcbd003e1a06c32a571e3b311ba00ee5b2957b
 func start_barrier_cooldown() -> void:
 	barrier_ready = false
 	await get_tree().create_timer(barrier_cooldown).timeout
@@ -566,7 +558,6 @@ func game_over() -> void:
 		GameData.high_score = score
 		# Now, call the save function to write it to the file!
 		GameData.save_data()
-<<<<<<< HEAD
 		
 	if Game_Finished:
 		$Game_Finished.play()
@@ -575,7 +566,6 @@ func game_over() -> void:
 	if player and is_instance_valid(player):
 		player.play_game_over_anim()
 	await get_tree().create_timer(1).timeout
-=======
 	if coin_count > GameData.high_coin_count:
 		GameData.high_coin_count = coin_count
 		new_high_score_set = true
@@ -588,7 +578,6 @@ func game_over() -> void:
 	if new_high_score_set:
 		GameData.save_data()
 	
->>>>>>> 31fcbd003e1a06c32a571e3b311ba00ee5b2957b
 	get_tree().paused = true
 	game_running = false
 	restart_button.show()
