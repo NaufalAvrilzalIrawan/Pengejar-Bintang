@@ -10,6 +10,9 @@ var moon_start_y: float
 @onready var score_label: Label = $BG/Control/LabelScore
 @onready var high_score_label: Label = $BG/Control2/LabelHigh
 @onready var coin_label: Label = $BG/Control5/LabelCoin
+@onready var kills_label: Label = $BG/Control6/LabelKills
+@onready var high_coin_label: Label = $BG/Control7/LabelHighCoin
+@onready var high_kill_label: Label = $BG/Control8/LabelHighKill
 @onready var restart_button: Button = $BG/Control3/Restart
 @onready var Game_Over: Label = $BG/Control3/Game_Over
 @onready var title_label: Label = $BG/Control4/Title
@@ -17,6 +20,7 @@ var moon_start_y: float
 @onready var Game_Finished: AudioStreamPlayer2D = $Game_Finished
 
 #Preload Scenes
+const ENEMY_SCENE := preload("res://Scenes/enemy_1.tscn")
 const STONE_1_SCENE := preload("res://Scenes/stone_1.tscn")
 const STONE_2_SCENE := preload("res://Scenes/stone_2.tscn")
 const PROJECTILE_SCENE := preload("res://Scenes/projectile.tscn")
@@ -27,8 +31,9 @@ const LAND_SCENE := preload("res://Scenes/land.tscn")
 
 #Game Configuration
 @export var START_POS := Vector2(150, 500)
-@export var START_SPEED : float = 250.0
-@export var MAX_SPEED : float = 3000
+@export var MOON_START := Vector2(698, 330)
+@export var START_SPEED : float = 300.0
+@export var MAX_SPEED : float = 2500
 @export var MAX_DIFFICULTY : int = 2
 @export var SPEED_INCREASE_FACTOR : float = 4
 @export var LAND_Y_POSITION : float = 580.0
@@ -48,10 +53,13 @@ var land_segments: Array[Node2D] = []
 var last_land_segment: Node2D = null
 
 #State Variables
+var enemies: Array = []
 var stone_type := [STONE_1_SCENE, STONE_2_SCENE]
 var stones : Array
 var coins: Array = []
 var coin_count: int = 0
+var enemies_killed_count: int = 0
+var _next_enemy_spawn_x: float = 0.0
 var _next_stone_spawn_x: float = 0.0
 var _next_projectile_spawn_x: float = 0.0
 var _next_coin_spawn_x: float = 0.0
@@ -72,10 +80,13 @@ var _last_spawn_x: float = -INF
 
 
 func _ready():
+	player.add_to_group("player")
 	# Load the high score from the singleton
 	moon_start_y = moon.position.y
 	high_score = GameData.high_score
 	high_score_label.text = "HIGH SCORE: %d" % int(high_score)
+	high_coin_label.text = "HIGH COINS: %d" % GameData.high_coin_count
+	high_kill_label.text = "HIGH KILLS: %d" % GameData.high_kill_count
 	
 	screen_size = get_window().size
 	start_button.pressed.connect(on_start_button_pressed)
@@ -109,11 +120,20 @@ func new_game() -> void:
 	get_tree().paused = false
 	score = 0.0
 	coin_count = 0
+	enemies_killed_count = 0
 	speed = START_SPEED
 	difficulty = 0
 	_last_spawn_x = -INF
+<<<<<<< HEAD
 
 	start_button.show()
+=======
+	
+	score_label.text = "SCORE: 0"
+	coin_label.text = "COINS: 0"
+	kills_label.text = "KILLS: 0"
+	start_label.show()
+>>>>>>> 31fcbd003e1a06c32a571e3b311ba00ee5b2957b
 	title_label.show()
 	restart_button.hide()
 	Game_Over.hide()
@@ -123,6 +143,7 @@ func new_game() -> void:
 	_next_stone_spawn_x = camera.position.x + screen_size.x
 	_next_projectile_spawn_x = camera.position.x + screen_size.x
 	_next_coin_spawn_x = camera.position.x + screen_size.x
+	_next_enemy_spawn_x = player.position.x + screen_size.x * 2.0
 	
 	#Cleanup
 	for obstacle in obstacles:
@@ -136,8 +157,11 @@ func new_game() -> void:
 	for segment in land_segments:
 		segment.queue_free()
 	land_segments.clear()
-
-	# 🧹 Tambahkan ini:
+	
+	for enemy in enemies:
+		enemy.queue_free()
+	enemies.clear()
+	
 	for st in stones:
 		st.queue_free()
 	stones.clear()
@@ -170,6 +194,7 @@ func _process(delta: float) -> void:
 	generate_stones()
 	generate_projectiles()
 	generate_coins()
+	generate_enemies()
 
 	update_game_state(delta)
 	generate_land()
@@ -339,16 +364,18 @@ func generate_coins():
 			# Spawn on the ground
 			var temp_coin = COIN_SCENE.instantiate()
 			# Safely get the sprite node
-			var coin_sprite = temp_coin.get_node_or_null("Sprite2D") as Sprite2D
+			var coin_sprite = temp_coin.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 			
 			# Check if the sprite was actually found before using it
-			if coin_sprite and coin_sprite.texture:
-				var coin_height = coin_sprite.texture.get_height() * coin_sprite.scale.y
+			if coin_sprite and coin_sprite.sprite_frames:
+				# Get the texture of the first frame of the "default" animation
+				var frame_texture = coin_sprite.sprite_frames.get_frame_texture("default", 0)
+				var coin_height = frame_texture.get_height() * coin_sprite.scale.y
 				spawn_y = LAND_Y_POSITION - (coin_height / 2) - COIN_GROUND_FLOAT
 			else:
-				# If no sprite is found, fall back to a default height to prevent a crash
+				# Fallback if we can't find it
 				spawn_y = LAND_Y_POSITION - 20 - COIN_GROUND_FLOAT
-				print_debug("ERROR: Could not find a 'Sprite2D' node in coin.tscn!")
+				print_debug("ERROR: Could not find 'AnimatedSprite2D' node in coin.tscn!")
 			
 			temp_coin.queue_free()
 		else:
@@ -369,6 +396,49 @@ func generate_coins():
 		# Set the position for the next coin spawn
 		_next_coin_spawn_x = spawn_x_start + randi_range(500, 900)
 
+func generate_enemies():
+	var camera_right_edge = camera.position.x + (screen_size.x / 2)
+	
+	# Check if it's time to spawn a new enemy
+	if camera_right_edge > _next_enemy_spawn_x:
+		var spawn_x = camera_right_edge + 750
+		
+		# Don't spawn over a gap
+		var land_y = get_land_y_at_x(spawn_x)
+		if land_y == null:
+			# No land here (it's a gap), so skip spawning
+			_next_enemy_spawn_x = camera_right_edge + 200 # Try again soon
+			return
+		
+		if is_in_safe_zone(spawn_x):
+			_next_enemy_spawn_x = camera_right_edge + 200 # Try again soon
+			return
+		
+		var enemy = ENEMY_SCENE.instantiate()
+		
+		# Get its height to place it correctly on the ground
+		var enemy_sprite = enemy.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+		var spawn_y_final: float
+		
+		if enemy_sprite and enemy_sprite.sprite_frames:
+			# Get the texture of the first frame of the "default" animation
+			var frame_texture = enemy_sprite.sprite_frames.get_frame_texture("default", 0)
+			var enemy_height = frame_texture.get_height() * enemy_sprite.scale.y
+			spawn_y_final = land_y - (enemy_height / 2)
+		else:
+			spawn_y_final = LAND_Y_POSITION - 30 # Fallback
+			print_debug("ERROR: Could not find 'AnimatedSprite2D' in Enemy_1.tscn")
+
+		enemy.position = Vector2(spawn_x, spawn_y_final)
+		add_child(enemy)
+		enemies.append(enemy)
+		
+		# Pass the current speed to the enemy
+		enemy.init_enemy(speed, START_SPEED, MAX_SPEED)
+		
+		# Set the next trigger relative to THIS spawn's position
+		_next_enemy_spawn_x = spawn_x + randi_range(3000, 5000)
+	
 func _on_coin_collected(body, coin_instance):
 	if body.name != "Player":
 		return
@@ -422,6 +492,17 @@ func cleanup_nodes() -> void:
 		if coin.position.x < cleanup_threshold:
 			coin.queue_free()
 			coins.remove_at(i)
+			
+	# Cleanup enemies
+	for i in range(enemies.size() - 1, -1, -1):
+		var enemy = enemies[i]
+		if not is_instance_valid(enemy):
+			enemies.remove_at(i) # Clean up the "ghost" reference
+			continue
+		
+		if enemy.position.x < cleanup_threshold:
+			enemy.queue_free()
+			enemies.remove_at(i)
 
 func toggle_barrier() -> void:
 	if not barrier_ready:
@@ -437,20 +518,29 @@ func toggle_barrier() -> void:
 
 		# Hubungkan sinyal saat menangkis proyektil
 		current_barrier.projectile_blocked.connect(_on_barrier_blocked)
-
+		current_barrier.enemy_destroyed.connect(_on_enemy_destroyed)
+		
 		# Jalankan durasi & cooldown dari sini
 		run_barrier_duration()
 		start_barrier_cooldown()
 
-
-# 🔄 Fungsi durasi utama (pakai BARRIER_DURATION dari scene utama)
+func _on_enemy_destroyed():
+	enemies_killed_count += 1
+	kills_label.text = "KILLS: %d" % enemies_killed_count
+	
+# Fungsi durasi utama (pakai BARRIER_DURATION dari scene utama)
 func run_barrier_duration() -> void:
 	await get_tree().create_timer(BARRIER_DURATION).timeout
 	if current_barrier:
 		await current_barrier.play_end_animation()
 		current_barrier = null
 
+<<<<<<< HEAD
 # ⏱️ Jalankan cooldown setelah barrier diaktifkan
+=======
+
+# Jalankan cooldown setelah barrier diaktifkan
+>>>>>>> 31fcbd003e1a06c32a571e3b311ba00ee5b2957b
 func start_barrier_cooldown() -> void:
 	barrier_ready = false
 	await get_tree().create_timer(barrier_cooldown).timeout
@@ -470,10 +560,13 @@ func is_on_land(pos_x: float) -> bool:
 	return false
 
 func game_over() -> void:
+	var new_high_score_set = false # Flag to see if save is needed
+	
 	if score > GameData.high_score:
 		GameData.high_score = score
 		# Now, call the save function to write it to the file!
 		GameData.save_data()
+<<<<<<< HEAD
 		
 	if Game_Finished:
 		$Game_Finished.play()
@@ -482,6 +575,20 @@ func game_over() -> void:
 	if player and is_instance_valid(player):
 		player.play_game_over_anim()
 	await get_tree().create_timer(1).timeout
+=======
+	if coin_count > GameData.high_coin_count:
+		GameData.high_coin_count = coin_count
+		new_high_score_set = true
+		
+	if enemies_killed_count > GameData.high_kill_count:
+		GameData.high_kill_count = enemies_killed_count
+		new_high_score_set = true
+	
+	# Only save the file if a new record was set
+	if new_high_score_set:
+		GameData.save_data()
+	
+>>>>>>> 31fcbd003e1a06c32a571e3b311ba00ee5b2957b
 	get_tree().paused = true
 	game_running = false
 	restart_button.show()
