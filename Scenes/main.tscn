@@ -11,7 +11,7 @@
 script = ExtResource("1_jjvhh")
 moon_speed = 10.0
 moon_travel_distance = 900.0
-MAX_SPEED = 2500.0
+START_SPEED = 500.0
 LAND_Y_POSITION = 560.0
 PROJECTILE_HEIGHTS = Array[int]([300, 400])
 COIN_GROUND_FLOAT = 30.0
@@ -45,8 +45,5 @@ item_2/id = 2
 stream = ExtResource("5_kry3j")
 volume_db = -5.0
 
-[node name="Game_Finished" type="AudioStreamPlayer2D" parent="."]
-position = Vector2(66, 499)
-scale = Vector2(0.31, 0.31)
+[node name="Game_Finished" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("6_21xkr")
-volume_db = 15.0

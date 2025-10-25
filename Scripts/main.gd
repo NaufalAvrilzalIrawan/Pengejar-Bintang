@@ -17,7 +17,7 @@ var moon_start_y: float
 @onready var Game_Over: Label = $BG/Control3/Game_Over
 @onready var title_label: Label = $BG/Control4/Title
 @onready var start_button: Button = $BG/Control4/StartButton
-@onready var Game_Finished: AudioStreamPlayer2D = $Game_Finished
+@onready var Game_Finished: AudioStreamPlayer = $Game_Finished
 
 #Preload Scenes
 const ENEMY_SCENE := preload("res://Scenes/enemy_1.tscn")
@@ -215,7 +215,7 @@ func start_game() -> void:
 	# Mulai animasi karakter masuk ke layar
 	var tween = create_tween()
 	var target_pos = START_POS
-	var start_pos = START_POS - Vector2(150,0) # mulai dari luar layar kiri
+	var start_pos = START_POS - Vector2(150, 0) # mulai dari luar layar kiri
 	
 	player.position = start_pos
 	player.velocity = Vector2.ZERO
