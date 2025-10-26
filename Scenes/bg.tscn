@@ -183,20 +183,36 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Restart" type="Button" parent="Control3"]
+z_index = 10
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -4.0
-offset_top = -4.0
-offset_right = 4.0
-offset_bottom = 4.0
+offset_left = -66.0
+offset_top = 64.0
+offset_right = 67.0
+offset_bottom = 118.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "Game Over
-Press To Restart"
+text = "Restart ..."
+
+[node name="Game_Over" type="Label" parent="Control3"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -188.5
+offset_top = -90.0
+offset_right = 188.5
+offset_bottom = -9.0
+grow_horizontal = 2
+theme_override_fonts/font = ExtResource("6_k2fby")
+theme_override_font_sizes/font_size = 60
+text = "GAME OVER"
+horizontal_alignment = 1
+uppercase = true
 
 [node name="Control4" type="Control" parent="."]
 z_index = 3
@@ -222,18 +238,21 @@ text = "Starchaser"
 horizontal_alignment = 1
 uppercase = true
 
-[node name="Start" type="Label" parent="Control4"]
+[node name="StartButton" type="Button" parent="Control4"]
+z_index = 10
 layout_mode = 1
-anchors_preset = 5
+anchors_preset = 8
 anchor_left = 0.5
+anchor_top = 0.5
 anchor_right = 0.5
-offset_left = -106.0
-offset_top = 490.0
-offset_right = 106.0
-offset_bottom = 513.0
+anchor_bottom = 0.5
+offset_left = -66.0
+offset_top = 387.0
+offset_right = 67.0
+offset_bottom = 441.0
 grow_horizontal = 2
-text = "Press any button to Play"
-horizontal_alignment = 1
+grow_vertical = 2
+text = "Start!"
 
 [node name="Moon" type="Sprite2D" parent="."]
 position = Vector2(698, 628)

@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=3 uid="uid://c0cf27ribiu3s"]
+[gd_scene load_steps=33 format=3 uid="uid://c0cf27ribiu3s"]
 
 [ext_resource type="Script" uid="uid://btwnkqw0t8o7r" path="res://Scripts/player.gd" id="1_pu2lt"]
 [ext_resource type="Texture2D" uid="uid://cv8unndvj6hsd" path="res://Assets/Graphics/Rolling/Frame 1.png" id="2_fd4e3"]
@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" uid="uid://csbwascping65" path="res://Assets/Graphics/Jump 2/Frame 1+.png" id="7_fs7ks"]
 [ext_resource type="Texture2D" uid="uid://buers2dfu6upr" path="res://Assets/Graphics/Rolling/Frame 6.png" id="7_y6uwr"]
 [ext_resource type="Texture2D" uid="uid://b5i8uy5cda4uo" path="res://Assets/Graphics/Jump 2/Frame 2+.png" id="8_l6n3p"]
+[ext_resource type="Texture2D" uid="uid://eb3mpyuisrqq" path="res://Assets/Graphics/Rolling/Falling.png" id="8_y6uwr"]
 [ext_resource type="Texture2D" uid="uid://bvdaj76fs733t" path="res://Assets/Graphics/Jump 2/Frame 3+.png" id="9_olqyp"]
 [ext_resource type="Texture2D" uid="uid://cy44t7dmcx8ei" path="res://Assets/Graphics/Run 3/Frame 1.png" id="10_h4iuc"]
 [ext_resource type="Texture2D" uid="uid://djlbv04bkqt0k" path="res://Assets/Graphics/Jump 2/Frame 5.png" id="10_p1odr"]
@@ -27,6 +28,7 @@
 [ext_resource type="Texture2D" uid="uid://c3sx6x7ta3e11" path="res://Assets/Graphics/Run 3/Frame 10.png" id="19_0gysh"]
 [ext_resource type="Texture2D" uid="uid://dxpfxwxbw5o8s" path="res://Assets/Graphics/Run 3/Frame 11.png" id="20_vfarp"]
 [ext_resource type="Texture2D" uid="uid://cgv4utmwbhbab" path="res://Assets/Graphics/Run 3/Frame 12.png" id="21_y6uwr"]
+[ext_resource type="AudioStream" uid="uid://cevcnunqle60s" path="res://Assets/Audio/Sand.wav" id="29_83xs0"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_wpjfl"]
 animations = [{
@@ -52,6 +54,29 @@ animations = [{
 "loop": false,
 "name": &"Dive",
 "speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_fd4e3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_qqcod")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_igrcy")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_fs7ks")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_vfarp")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_y6uwr")
+}],
+"loop": false,
+"name": &"Fall",
+"speed": 15.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -129,6 +154,9 @@ animations = [{
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bi64h"]
 size = Vector2(104.376, 264.516)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_y6uwr"]
+size = Vector2(164.516, 154.839)
+
 [node name="Player" type="CharacterBody2D"]
 scale = Vector2(0.31, 0.31)
 script = ExtResource("1_pu2lt")
@@ -136,18 +164,14 @@ script = ExtResource("1_pu2lt")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 texture_filter = 1
 sprite_frames = SubResource("SpriteFrames_wpjfl")
-animation = &"Jump"
-autoplay = "Run"
-frame = 5
+animation = &"Run"
 
 [node name="CollisionShapeRunning" type="CollisionShape2D" parent="."]
 position = Vector2(3.22581, -0.000120747)
-scale = Vector2(1, 1)
 shape = SubResource("RectangleShape2D_bi64h")
 
 [node name="CollisionShapeJumping" type="CollisionPolygon2D" parent="."]
 position = Vector2(3.22581, -0.000120747)
-scale = Vector2(1, 1)
 polygon = PackedVector2Array(-19.3548, -19.3547, 80.6452, 83.8711, 112.903, 80.6453, 119.355, 61.2905, 103.226, 54.8388, 64.5161, -9.6773, 19.3548, -29.0321, 41.9355, -61.2902, 74.1936, -122.581, 67.742, -138.71, 35.4839, -141.935)
 
 [node name="JumpAudio" type="AudioStreamPlayer2D" parent="."]
@@ -243,3 +267,12 @@ initial_velocity_max = 300.0
 scale_amount_min = 0.25
 scale_amount_max = 0.5
 color = Color(0, 0.0431373, 0.129412, 1)
+
+[node name="CollisionShapeFalling" type="CollisionShape2D" parent="."]
+position = Vector2(62.9032, -54.8387)
+shape = SubResource("RectangleShape2D_y6uwr")
+
+[node name="SandAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("29_83xs0")
+volume_db = 9.0
+pitch_scale = 2.0

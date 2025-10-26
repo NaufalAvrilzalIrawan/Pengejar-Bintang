@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c28lhak1a0cmi"
-path="res://.godot/imported/Platform B.png-0a22df989447b0fc4364497824478cb7.ctex"
+uid="uid://1jf0ibjj0j67"
+path="res://.godot/imported/Brick.png-f57d3f12f26e87e4ac9c1a411c0d381b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Graphics/Object/Platform B.png"
-dest_files=["res://.godot/imported/Platform B.png-0a22df989447b0fc4364497824478cb7.ctex"]
+source_file="res://Assets/Graphics/Platform/Brick.png"
+dest_files=["res://.godot/imported/Brick.png-f57d3f12f26e87e4ac9c1a411c0d381b.ctex"]
 
 [params]
 

@@ -14,20 +14,25 @@ var moon_start_y: float
 @onready var high_coin_label: Label = $BG/Control7/LabelHighCoin
 @onready var high_kill_label: Label = $BG/Control8/LabelHighKill
 @onready var restart_button: Button = $BG/Control3/Restart
-@onready var start_label: Label = $BG/Control4/Start
+@onready var Game_Over: Label = $BG/Control3/Game_Over
 @onready var title_label: Label = $BG/Control4/Title
+@onready var start_button: Button = $BG/Control4/StartButton
+@onready var Game_Finished: AudioStreamPlayer = $Game_Finished
 
 #Preload Scenes
 const ENEMY_SCENE := preload("res://Scenes/enemy_1.tscn")
 const STONE_1_SCENE := preload("res://Scenes/stone_1.tscn")
 const STONE_2_SCENE := preload("res://Scenes/stone_2.tscn")
-const PROJECTILE_SCENE := preload("res://Scenes/projectile.tscn")
+const PROJECTILE_SCENE := preload("res://Scenes/moth.tscn")
 const BARRIER_SCENE := preload("res://Scenes/barrier.tscn")
 const COIN_SCENE := preload("res://Scenes/coin.tscn")
 const LAND_SCENE := preload("res://Scenes/land.tscn")
 
 
 #Game Configuration
+@export var Random_Generate := true
+@export var Random_Projectile := true
+@export var Targeted_Generate := true
 @export var START_POS := Vector2(150, 500)
 @export var MOON_START := Vector2(698, 330)
 @export var START_SPEED : float = 300.0
@@ -38,11 +43,11 @@ const LAND_SCENE := preload("res://Scenes/land.tscn")
 @export var GAP_SIZE : float = 180.0
 @export var SAFE_ZONE_PERCENT: float = 0.3
 @export var PROJECTILE_HEIGHTS: Array[int] = [200, 300, 400]
-@export var COIN_AIR_HEIGHTS: Array[int] = [300, 400]
+@export var COIN_AIR_HEIGHTS: Array[int] = [300, 330]
 @export var COIN_GROUND_FLOAT : float = 60.0 # How high coins float above the ground
 @export var BARRIER_DURATION : float = 1 # How high coins float above the ground
 @export var barrier_cooldown: float = 2.0 # durasi cooldown (detik)
-var barrier_ready: bool = true
+@export var MIN_SPAWN_GAP : float = 150.0 # Minimum pixels between any spawned objects
 
 
 #Land Variables
@@ -71,6 +76,9 @@ var game_running: bool = false
 var difficulty: int = 0
 var screen_size: Vector2i
 var generate := true
+var game_over_triggered: bool = false
+var barrier_ready: bool = true
+var last_spawned_object_x : float = -INF # Tracks the X position of the last thing spawned
 
 #Camera untuk generate
 var _camera_cleanup_threshold: float = 0.0
@@ -87,11 +95,12 @@ func _ready():
 	high_kill_label.text = "HIGH KILLS: %d" % GameData.high_kill_count
 	
 	screen_size = get_window().size
+	start_button.pressed.connect(on_start_button_pressed)
 	restart_button.pressed.connect(reload_game)
 	
 	#Set Land Width
 	var temp_land = LAND_SCENE.instantiate()
-	land_height = temp_land.get_node("Sprite2D").texture.get_height()
+	land_height = temp_land.get_node("Ground").texture.get_height()
 	if temp_land.get_child_count() > 0:
 		var child = temp_land.get_child(0)
 		if child is Sprite2D:
@@ -104,6 +113,9 @@ func _ready():
 	_camera_cleanup_threshold = screen_size.x / 2 + 200
 
 	new_game()
+func on_start_button_pressed() -> void:
+	start_button.hide()  # sembunyikan tombol start
+	start_game()         # panggil animasi masuk kamera
 
 func reload_game() -> void:
 	get_tree().reload_current_scene()
@@ -118,13 +130,18 @@ func new_game() -> void:
 	speed = START_SPEED
 	difficulty = 0
 	_last_spawn_x = -INF
+	last_spawned_object_x = -INF
+	game_over_triggered = false
+	
+	start_button.show()
 	
 	score_label.text = "SCORE: 0"
 	coin_label.text = "COINS: 0"
 	kills_label.text = "KILLS: 0"
-	start_label.show()
 	title_label.show()
 	restart_button.hide()
+	Game_Over.hide()
+	player.hide()
 	
 	camera.position = Vector2(player.position.x, camera.position.y)
 	_next_stone_spawn_x = camera.position.x + screen_size.x
@@ -166,19 +183,23 @@ func new_game() -> void:
 	$BGM.play()
 
 func _input(event: InputEvent) -> void:
+	# Hanya izinkan input jika game sedang berjalan
+	if not game_running:
+		return
+
 	if event.is_action_pressed("barrier"):
 		toggle_barrier()
 
+
 func _process(delta: float) -> void:
 	if not game_running:
-		if Input.is_action_just_pressed("jump"):
-			start_game()
 		return
-	
-	generate_stones()
-	generate_projectiles()
-	generate_coins()
-	generate_enemies()
+	if Random_Generate == true:
+		generate_stones()
+		generate_coins()
+		generate_enemies()
+	if Random_Projectile == true:
+		generate_projectiles()
 
 	update_game_state(delta)
 	generate_land()
@@ -195,9 +216,27 @@ func _process(delta: float) -> void:
 
 
 func start_game() -> void:
-	game_running = true
-	start_label.hide()
+	
+	start_button.hide()
 	title_label.hide()
+	player.show()
+
+	# Mulai animasi karakter masuk ke layar
+	var tween = create_tween()
+	var target_pos = START_POS
+	var start_pos = START_POS - Vector2(150, 0) # mulai dari luar layar kiri
+	
+	player.position = start_pos
+	player.velocity = Vector2.ZERO
+	game_running = false # jangan mulai dulu gameplay-nya
+
+	# Tween untuk memindahkan karakter ke posisi START_POS
+	tween.tween_property(player, "position", target_pos, 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+	# Setelah animasi selesai, baru mulai game
+	await tween.finished
+	game_running = true
+
 	
 
 func update_game_state(delta: float) -> void:
@@ -232,11 +271,60 @@ func generate_next_land_segment() -> void:
 	spawn_land_segment(Vector2(new_pos_x, LAND_Y_POSITION))
 
 func spawn_land_segment(pos: Vector2) -> void:
+	# Buat instance land baru dari scene
 	var new_land = LAND_SCENE.instantiate()
 	new_land.position = pos
 	add_child(new_land)
+	
+	# Simpan ke daftar segment untuk tracking dan cleanup
 	land_segments.append(new_land)
 	last_land_segment = new_land
+
+	# 🔹 Jika Land punya fungsi get_spawn_points() (dari Land.gd)
+	if new_land.has_method("get_spawn_points"):
+		var spawns = new_land.get_spawn_points()
+		if Targeted_Generate == true:
+		# 🪙 Spawn Coins (bisa banyak marker)
+			if spawns.has("coin"):
+				for coin_pos in spawns["coin"]:
+					var coin_instance = COIN_SCENE.instantiate()
+					coin_instance.position = coin_pos
+					coin_instance.body_entered.connect(_on_coin_collected.bind(coin_instance))
+					add_child(coin_instance)
+					coins.append(coin_instance)
+
+			# 💀 Spawn Enemies
+			if spawns.has("enemy"):
+				for enemy_pos in spawns["enemy"]:
+					var enemy_instance = ENEMY_SCENE.instantiate()
+					enemy_instance.position = enemy_pos
+					add_child(enemy_instance)
+					enemies.append(enemy_instance)
+					
+					# Inisialisasi enemy agar kecepatannya sinkron
+					if enemy_instance.has_method("init_enemy"):
+						enemy_instance.init_enemy(speed, START_SPEED, MAX_SPEED)
+
+			# 🪨 Spawn Stones
+			if spawns.has("stone"):
+				for stone_pos in spawns["stone"]:
+					var stone_instance = STONE_1_SCENE.instantiate()
+					stone_instance.position = stone_pos
+					add_child(stone_instance)
+					stones.append(stone_instance)
+					obstacles.append(stone_instance)
+					stone_instance.body_entered.connect(hit_stone)
+
+			# 💥 Spawn Projectiles
+			if spawns.has("projectile"):
+				for proj_pos in spawns["projectile"]:
+					var proj_instance = PROJECTILE_SCENE.instantiate()
+					proj_instance.position = proj_pos
+					add_child(proj_instance)
+					stones.append(proj_instance)
+					obstacles.append(proj_instance)
+					proj_instance.body_entered.connect(hit_stone)
+
 
 func is_in_safe_zone(pos_x: float) -> bool:
 	for segment in land_segments:
@@ -262,15 +350,21 @@ func generate_stones():
 	var camera_right_edge = camera.position.x + (screen_size.x / 2) + 750 
 	if camera_right_edge <= _next_stone_spawn_x:
 		return
-
+	
+	var base_x = _next_stone_spawn_x
+	if base_x < last_spawned_object_x + MIN_SPAWN_GAP:
+		_next_stone_spawn_x += 50 # Try again a bit later
+		return
+	
 	var st_type = stone_type[randi() % stone_type.size()]
 	var max_st = difficulty + 1
-	var base_x = _next_stone_spawn_x
-
+	var last_stone_x_in_cluster = base_x # Track the last stone in this group
+	
 	var spawned_any = false
 	for i in range(randi() % max_st + 1):
 		var st_x = base_x + (i * 100)
-
+		last_stone_x_in_cluster = st_x # Update last position
+		
 		# Jika tidak ada tanah di posisi st_x, skip (atau cari nearest land jika mau)
 		var land_y = get_land_y_at_x(st_x)
 		if land_y == null:
@@ -291,6 +385,7 @@ func generate_stones():
 	# Set next spawn (jika tidak spawn apapun, coba sedikit maju agar tidak stuck)
 	if spawned_any:
 		_next_stone_spawn_x = base_x + randi_range(400, 800)
+		last_spawned_object_x = last_stone_x_in_cluster
 	else:
 		_next_stone_spawn_x = camera_right_edge + 200
 
@@ -317,14 +412,18 @@ func generate_coins():
 	if camera_right_edge > _next_coin_spawn_x:
 		var spawn_x_start = camera_right_edge + 750 # Start spawning ahead of camera
 		
-		# Use our new function to make sure we don't spawn over a deadly gap
-		if not is_on_land(spawn_x_start):
-			_next_coin_spawn_x = camera_right_edge + 750 # Try again soon
+		if spawn_x_start < last_spawned_object_x + MIN_SPAWN_GAP:
+			_next_coin_spawn_x += 50 # Try again a bit later
 			return
-
+		
+		var is_over_gap = not is_on_land(spawn_x_start) # Check for gap FIRST
+		
 		var spawn_y: float
 		# Decide randomly: 0 for ground, 1 for air
 		var spawn_type = randi() % 2
+		
+		if is_over_gap:
+			spawn_type = 1 # Force air spawn if over a gap
 		
 		if spawn_type == 0:
 			# Spawn on the ground
@@ -347,11 +446,13 @@ func generate_coins():
 		else:
 			# Spawn in the air
 			spawn_y = COIN_AIR_HEIGHTS[randi() % COIN_AIR_HEIGHTS.size()]
-
+			
+		var last_coin_x_in_cluster = spawn_x_start
 		# Now, spawn a line of 5 coins at the calculated position
 		for i in range(5):
 			var coin_instance = COIN_SCENE.instantiate()
 			var coin_x = spawn_x_start + (i * 60) # Space them out
+			last_coin_x_in_cluster = coin_x
 			
 			coin_instance.position = Vector2(coin_x, spawn_y)
 			coin_instance.body_entered.connect(_on_coin_collected.bind(coin_instance))
@@ -360,6 +461,7 @@ func generate_coins():
 			coins.append(coin_instance)
 		
 		# Set the position for the next coin spawn
+		last_spawned_object_x = last_coin_x_in_cluster
 		_next_coin_spawn_x = spawn_x_start + randi_range(500, 900)
 
 func generate_enemies():
@@ -369,41 +471,45 @@ func generate_enemies():
 	if camera_right_edge > _next_enemy_spawn_x:
 		var spawn_x = camera_right_edge + 750
 		
-		# Don't spawn over a gap
+		if spawn_x < last_spawned_object_x + MIN_SPAWN_GAP:
+			_next_enemy_spawn_x += 50 # Try again a bit later
+			return
+		
+		# Jangan spawn di atas celah (gap)
 		var land_y = get_land_y_at_x(spawn_x)
 		if land_y == null:
-			# No land here (it's a gap), so skip spawning
-			_next_enemy_spawn_x = camera_right_edge + 200 # Try again soon
+			_next_enemy_spawn_x = camera_right_edge + 200 # coba lagi nanti
 			return
 		
+		# Hindari zona aman di tepi platform
 		if is_in_safe_zone(spawn_x):
-			_next_enemy_spawn_x = camera_right_edge + 200 # Try again soon
+			_next_enemy_spawn_x = camera_right_edge + 200
 			return
 		
+		# Buat instance musuh
 		var enemy = ENEMY_SCENE.instantiate()
 		
-		# Get its height to place it correctly on the ground
+		# Hitung tinggi sprite agar musuh berdiri di atas tanah
 		var enemy_sprite = enemy.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 		var spawn_y_final: float
 		
 		if enemy_sprite and enemy_sprite.sprite_frames:
-			# Get the texture of the first frame of the "default" animation
-			var frame_texture = enemy_sprite.sprite_frames.get_frame_texture("default", 0)
+			var frame_texture = enemy_sprite.sprite_frames.get_frame_texture("shoot", 0)
 			var enemy_height = frame_texture.get_height() * enemy_sprite.scale.y
 			spawn_y_final = land_y - (enemy_height / 2)
 		else:
-			spawn_y_final = LAND_Y_POSITION - 30 # Fallback
+			spawn_y_final = LAND_Y_POSITION - 30
 			print_debug("ERROR: Could not find 'AnimatedSprite2D' in Enemy_1.tscn")
 
+		# Tempatkan musuh dan tambahkan ke scene utama
 		enemy.position = Vector2(spawn_x, spawn_y_final)
 		add_child(enemy)
 		enemies.append(enemy)
 		
-		# Pass the current speed to the enemy
-		enemy.init_enemy(speed, START_SPEED, MAX_SPEED)
 		
-		# Set the next trigger relative to THIS spawn's position
-		_next_enemy_spawn_x = spawn_x + randi_range(3000, 5000)
+		# Atur kapan musuh berikutnya akan muncul
+		last_spawned_object_x = spawn_x
+		_next_enemy_spawn_x = spawn_x + randi_range(100, 3000)
 	
 func _on_coin_collected(body, coin_instance):
 	if body.name != "Player":
@@ -508,12 +614,9 @@ func start_barrier_cooldown() -> void:
 	await get_tree().create_timer(barrier_cooldown).timeout
 	barrier_ready = true
 
-
 # ⚡ Kalau projectile kena barrier, reset cooldown (langsung bisa aktif lagi)
 func _on_barrier_blocked() -> void:
 	barrier_ready = true
-
-
 
 # This function checks if a given x-coordinate is over any land segment
 func is_on_land(pos_x: float) -> bool:
@@ -525,12 +628,25 @@ func is_on_land(pos_x: float) -> bool:
 	return false
 
 func game_over() -> void:
+	# Check if game over is already triggered so it does initiate more than once
+	if game_over_triggered:
+		return
+	game_over_triggered = true
+	
 	var new_high_score_set = false # Flag to see if save is needed
 	
 	if score > GameData.high_score:
 		GameData.high_score = score
 		# Now, call the save function to write it to the file!
 		GameData.save_data()
+		
+	if Game_Finished:
+		$Game_Finished.play()
+		$BGM.stop()
+		
+	if player and is_instance_valid(player):
+		player.play_game_over_anim()
+	await get_tree().create_timer(1).timeout
 	if coin_count > GameData.high_coin_count:
 		GameData.high_coin_count = coin_count
 		new_high_score_set = true
@@ -542,7 +658,12 @@ func game_over() -> void:
 	# Only save the file if a new record was set
 	if new_high_score_set:
 		GameData.save_data()
+		
+	for projectile in get_tree().get_nodes_in_group("projectiles"):
+		if is_instance_valid(projectile):
+			projectile.queue_free()
 	
 	get_tree().paused = true
 	game_running = false
 	restart_button.show()
+	Game_Over.show()
