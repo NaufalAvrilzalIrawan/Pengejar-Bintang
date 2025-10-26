@@ -76,6 +76,7 @@ var game_running: bool = false
 var difficulty: int = 0
 var screen_size: Vector2i
 var generate := true
+var game_over_triggered: bool = false
 
 #Camera untuk generate
 var _camera_cleanup_threshold: float = 0.0
@@ -605,6 +606,11 @@ func is_on_land(pos_x: float) -> bool:
 	return false
 
 func game_over() -> void:
+	# Check if game over is already triggered so it does initiate more than once
+	if game_over_triggered:
+		return
+	game_over_triggered = true
+	
 	var new_high_score_set = false # Flag to see if save is needed
 	
 	if score > GameData.high_score:

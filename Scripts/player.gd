@@ -14,7 +14,7 @@ var is_dead: bool = false
 # ======== NODE REF =========
 @onready var collision_running: CollisionShape2D = $CollisionShapeRunning
 @onready var collision_jumping: CollisionPolygon2D = $CollisionShapeJumping
-@onready var collision_falling: CollisionPolygon2D = $CollisionShapeJumping
+#@onready var collision_falling: CollisionPolygon2D = $CollisionShapeJumping
 @onready var anim: AnimatedSprite2D = $AnimatedSprite2D
 @onready var JumpDust: CPUParticles2D = $JumpDust
 @onready var StepDust_Left1: CPUParticles2D = $StepDust_Left1
@@ -30,37 +30,28 @@ var last_step_frame := -1
 
 
 func _physics_process(delta):
+	# Apply gravity always (even when dead)
 	velocity.y += GRAVITY * delta
+
+	# If dead, only fall — no controls or collision swaps
 	if is_dead:
 		move_and_slide()
 		return
 
+	# ===== normal behavior =====
 	var main = get_tree().current_scene
-	var game_speed
-	var base_speed
-	var max_speed
-	
-	# ✅ Periksa properti dengan "in"
 	if main and "speed" in main and "START_SPEED" in main and "MAX_SPEED" in main:
-		game_speed = main.speed
-		base_speed = main.START_SPEED
-		max_speed = main.MAX_SPEED
+		var speed_ratio = clamp(main.speed / main.START_SPEED, 1.0, main.MAX_SPEED / main.START_SPEED)
+		anim.speed_scale = speed_ratio
 
-	# 🔥 Skala kecepatan animasi "Run"
-	var speed_ratio = clamp(game_speed / base_speed, 1.0, max_speed / base_speed)
-	anim.speed_scale = speed_ratio
-
-	# ======== GERAKAN ========
 	if is_on_floor():
 		collision_running.disabled = false
 		collision_jumping.disabled = true
-		collision_falling.disabled = true
 
 		if Input.is_action_pressed("jump"):
 			velocity.y = JUMP_SPEED
-			if JumpAudio:
-				JumpAudio.play()
-				SandAudio.play()
+			JumpAudio.play()
+			SandAudio.play()
 			anim.play("Jump")
 			play_jump_dust()
 		else:
@@ -69,7 +60,6 @@ func _physics_process(delta):
 	else:
 		collision_running.disabled = true
 		collision_jumping.disabled = false
-		collision_falling.disabled = true
 
 		if Input.is_action_just_pressed("dive"):
 			velocity.y = DIVE_SPEED
@@ -131,13 +121,13 @@ func play_run_dust():
 
 func play_game_over_anim():
 	is_dead = true 
-	velocity = Vector2.ZERO  
+	velocity = Vector2(0, 400)
 	if anim:
 		anim.play("Fall")
 
-	collision_running.disabled = true
-	collision_jumping.disabled = true
-	collision_falling.disabled = false
+	collision_running.set_deferred("disabled", true)
+	collision_jumping.set_deferred("disabled", true)
+	#collision_falling.disabled = false
 
 	if JumpDust: JumpDust.emitting = false
 	if StepDust_Left1: StepDust_Left1.emitting = false
