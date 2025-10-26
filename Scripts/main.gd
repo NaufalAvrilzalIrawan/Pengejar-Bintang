@@ -43,11 +43,11 @@ const LAND_SCENE := preload("res://Scenes/land.tscn")
 @export var GAP_SIZE : float = 180.0
 @export var SAFE_ZONE_PERCENT: float = 0.3
 @export var PROJECTILE_HEIGHTS: Array[int] = [200, 300, 400]
-@export var COIN_AIR_HEIGHTS: Array[int] = [300, 400]
+@export var COIN_AIR_HEIGHTS: Array[int] = [300, 330]
 @export var COIN_GROUND_FLOAT : float = 60.0 # How high coins float above the ground
 @export var BARRIER_DURATION : float = 1 # How high coins float above the ground
 @export var barrier_cooldown: float = 2.0 # durasi cooldown (detik)
-var barrier_ready: bool = true
+@export var MIN_SPAWN_GAP : float = 150.0 # Minimum pixels between any spawned objects
 
 
 #Land Variables
@@ -77,6 +77,8 @@ var difficulty: int = 0
 var screen_size: Vector2i
 var generate := true
 var game_over_triggered: bool = false
+var barrier_ready: bool = true
+var last_spawned_object_x : float = -INF # Tracks the X position of the last thing spawned
 
 #Camera untuk generate
 var _camera_cleanup_threshold: float = 0.0
@@ -128,7 +130,9 @@ func new_game() -> void:
 	speed = START_SPEED
 	difficulty = 0
 	_last_spawn_x = -INF
-
+	last_spawned_object_x = -INF
+	game_over_triggered = false
+	
 	start_button.show()
 	
 	score_label.text = "SCORE: 0"
@@ -346,15 +350,21 @@ func generate_stones():
 	var camera_right_edge = camera.position.x + (screen_size.x / 2) + 750 
 	if camera_right_edge <= _next_stone_spawn_x:
 		return
-
+	
+	var base_x = _next_stone_spawn_x
+	if base_x < last_spawned_object_x + MIN_SPAWN_GAP:
+		_next_stone_spawn_x += 50 # Try again a bit later
+		return
+	
 	var st_type = stone_type[randi() % stone_type.size()]
 	var max_st = difficulty + 1
-	var base_x = _next_stone_spawn_x
-
+	var last_stone_x_in_cluster = base_x # Track the last stone in this group
+	
 	var spawned_any = false
 	for i in range(randi() % max_st + 1):
 		var st_x = base_x + (i * 100)
-
+		last_stone_x_in_cluster = st_x # Update last position
+		
 		# Jika tidak ada tanah di posisi st_x, skip (atau cari nearest land jika mau)
 		var land_y = get_land_y_at_x(st_x)
 		if land_y == null:
@@ -375,6 +385,7 @@ func generate_stones():
 	# Set next spawn (jika tidak spawn apapun, coba sedikit maju agar tidak stuck)
 	if spawned_any:
 		_next_stone_spawn_x = base_x + randi_range(400, 800)
+		last_spawned_object_x = last_stone_x_in_cluster
 	else:
 		_next_stone_spawn_x = camera_right_edge + 200
 
@@ -401,14 +412,18 @@ func generate_coins():
 	if camera_right_edge > _next_coin_spawn_x:
 		var spawn_x_start = camera_right_edge + 750 # Start spawning ahead of camera
 		
-		# Use our new function to make sure we don't spawn over a deadly gap
-		if not is_on_land(spawn_x_start):
-			_next_coin_spawn_x = camera_right_edge + 750 # Try again soon
+		if spawn_x_start < last_spawned_object_x + MIN_SPAWN_GAP:
+			_next_coin_spawn_x += 50 # Try again a bit later
 			return
-
+		
+		var is_over_gap = not is_on_land(spawn_x_start) # Check for gap FIRST
+		
 		var spawn_y: float
 		# Decide randomly: 0 for ground, 1 for air
 		var spawn_type = randi() % 2
+		
+		if is_over_gap:
+			spawn_type = 1 # Force air spawn if over a gap
 		
 		if spawn_type == 0:
 			# Spawn on the ground
@@ -431,11 +446,13 @@ func generate_coins():
 		else:
 			# Spawn in the air
 			spawn_y = COIN_AIR_HEIGHTS[randi() % COIN_AIR_HEIGHTS.size()]
-
+			
+		var last_coin_x_in_cluster = spawn_x_start
 		# Now, spawn a line of 5 coins at the calculated position
 		for i in range(5):
 			var coin_instance = COIN_SCENE.instantiate()
 			var coin_x = spawn_x_start + (i * 60) # Space them out
+			last_coin_x_in_cluster = coin_x
 			
 			coin_instance.position = Vector2(coin_x, spawn_y)
 			coin_instance.body_entered.connect(_on_coin_collected.bind(coin_instance))
@@ -444,6 +461,7 @@ func generate_coins():
 			coins.append(coin_instance)
 		
 		# Set the position for the next coin spawn
+		last_spawned_object_x = last_coin_x_in_cluster
 		_next_coin_spawn_x = spawn_x_start + randi_range(500, 900)
 
 func generate_enemies():
@@ -452,6 +470,10 @@ func generate_enemies():
 	# Check if it's time to spawn a new enemy
 	if camera_right_edge > _next_enemy_spawn_x:
 		var spawn_x = camera_right_edge + 750
+		
+		if spawn_x < last_spawned_object_x + MIN_SPAWN_GAP:
+			_next_enemy_spawn_x += 50 # Try again a bit later
+			return
 		
 		# Jangan spawn di atas celah (gap)
 		var land_y = get_land_y_at_x(spawn_x)
@@ -484,9 +506,9 @@ func generate_enemies():
 		add_child(enemy)
 		enemies.append(enemy)
 		
-		# Tidak perlu init_enemy() lagi — tempo serangan diatur oleh animasi musuh
-
+		
 		# Atur kapan musuh berikutnya akan muncul
+		last_spawned_object_x = spawn_x
 		_next_enemy_spawn_x = spawn_x + randi_range(100, 3000)
 	
 func _on_coin_collected(body, coin_instance):
