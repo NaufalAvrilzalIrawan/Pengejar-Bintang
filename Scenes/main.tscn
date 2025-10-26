@@ -11,12 +11,13 @@
 script = ExtResource("1_jjvhh")
 moon_speed = 10.0
 moon_travel_distance = 900.0
-Random_Projectile = false
 Targeted_Generate = false
 START_SPEED = 500.0
+SPEED_INCREASE_FACTOR = 8.0
 LAND_Y_POSITION = 560.0
 PROJECTILE_HEIGHTS = Array[int]([300, 400])
 COIN_GROUND_FLOAT = 30.0
+BARRIER_DURATION = 0.5
 barrier_cooldown = 5.0
 
 [node name="Player" parent="." groups=["player"] instance=ExtResource("3_kry3j")]

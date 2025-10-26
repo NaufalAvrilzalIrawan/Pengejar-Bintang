@@ -123,11 +123,11 @@ autoplay = "active"
 
 [node name="SFX_Activate" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("14_6ldds")
-volume_db = 10.0
+volume_db = 18.0
 
 [node name="SFX_Deactivate" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("15_lihvt")
-volume_db = 10.0
+volume_db = 18.0
 
 [connection signal="area_entered" from="." to="." method="_on_area_entered"]
 [connection signal="body_entered" from="." to="." method="_on_body_entered"]

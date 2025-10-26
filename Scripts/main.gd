@@ -23,7 +23,7 @@ var moon_start_y: float
 const ENEMY_SCENE := preload("res://Scenes/enemy_1.tscn")
 const STONE_1_SCENE := preload("res://Scenes/stone_1.tscn")
 const STONE_2_SCENE := preload("res://Scenes/stone_2.tscn")
-const PROJECTILE_SCENE := preload("res://Scenes/projectile.tscn")
+const PROJECTILE_SCENE := preload("res://Scenes/moth.tscn")
 const BARRIER_SCENE := preload("res://Scenes/barrier.tscn")
 const COIN_SCENE := preload("res://Scenes/coin.tscn")
 const LAND_SCENE := preload("res://Scenes/land.tscn")

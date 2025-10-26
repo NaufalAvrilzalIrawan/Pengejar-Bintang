@@ -48,7 +48,7 @@ shape = SubResource("CircleShape2D_yr2qt")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_ay8ps")
 autoplay = "default"
-frame_progress = 0.371778
+frame_progress = 0.482028
 
 [node name="DeflectedParticles" type="CPUParticles2D" parent="."]
 rotation = 3.14159

@@ -2,7 +2,7 @@ extends CharacterBody2D
 
 # ======== KONSTANTA GERAK =========
 const GRAVITY : int = 2800
-const JUMP_SPEED : int = -1050
+const JUMP_SPEED : int = -900
 const DIVE_SPEED : int = 900
 
 # ======== BARRIER =========
@@ -25,17 +25,32 @@ var is_dead: bool = false
 
 # ======== STATUS =========
 var was_on_floor := false
-var last_step_frame := -1  # untuk deteksi frame langkah sebelumnya
+var last_step_frame := -1
 
 
 func _physics_process(delta):
 	velocity.y += GRAVITY * delta
 	if is_dead:
-		move_and_slide()  # biar bisa jatuh sedikit sebelum freeze
+		move_and_slide()
 		return
 
+	var main = get_tree().current_scene
+	var game_speed
+	var base_speed
+	var max_speed
+	
+	# ✅ Periksa properti dengan "in"
+	if main and "speed" in main and "START_SPEED" in main and "MAX_SPEED" in main:
+		game_speed = main.speed
+		base_speed = main.START_SPEED
+		max_speed = main.MAX_SPEED
+
+	# 🔥 Skala kecepatan animasi "Run"
+	var speed_ratio = clamp(game_speed / base_speed, 1.0, max_speed / base_speed)
+	anim.speed_scale = speed_ratio
+
+	# ======== GERAKAN ========
 	if is_on_floor():
-		# Jika baru mendarat, mainkan debu mendarat
 		collision_running.disabled = false
 		collision_jumping.disabled = true
 		collision_falling.disabled = true
@@ -56,7 +71,7 @@ func _physics_process(delta):
 
 		if Input.is_action_just_pressed("dive"):
 			velocity.y = DIVE_SPEED
-			anim.play("Dive")  # pastikan animasi Dive ada
+			anim.play("Dive")
 
 	move_and_slide()
 	was_on_floor = is_on_floor()
@@ -66,39 +81,31 @@ func _physics_process(delta):
 #     EFEK DEBU
 # =========================
 
-# 💨 Efek debu saat melompat
 func play_jump_dust():
 	if JumpDust:
 		JumpDust.restart()
 		JumpDust.emitting = true
-# 💨 Efek debu sinkron dengan animasi langkah kaki
+
 func play_run_dust():
 	if not is_on_floor():
-		if StepDust_Left1:
-			StepDust_Left1.disabled = true
-		if StepDust_Right1:
-			StepDust_Right1.disabled = true
-		if StepDust_Left2:
-			StepDust_Left2.disabled = true
-		if StepDust_Right2:
-			StepDust_Right2.disabled = true
+		if StepDust_Left1: StepDust_Left1.disabled = true
+		if StepDust_Right1: StepDust_Right1.disabled = true
+		if StepDust_Left2: StepDust_Left2.disabled = true
+		if StepDust_Right2: StepDust_Right2.disabled = true
 		return
 	if anim.animation != "Run":
 		return
-	
-	# Frame langkah — sesuaikan dengan animasi kamu
-	var left_step_frames1 = [0]   # kaki kiri injak tanah
-	var right_step_frames1 = [3]  # kaki kanan injak tanah
+
+	var left_step_frames1 = [0]
+	var right_step_frames1 = [3]
 	var left_step_frames2 = [5]
 	var right_step_frames2 = [8]
 	
-	# Saat frame kaki kiri menyentuh tanah
 	if anim.frame in left_step_frames1 and anim.frame != last_step_frame:
 		if StepDust_Left1:
 			StepDust_Left1.restart()
 			StepDust_Left1.emitting = true
 		last_step_frame = anim.frame
-	# Saat frame kaki kanan menyentuh tanah
 	elif anim.frame in right_step_frames1 and anim.frame != last_step_frame:
 		if StepDust_Right1:
 			StepDust_Right1.restart()
@@ -114,28 +121,25 @@ func play_run_dust():
 			StepDust_Right2.restart()
 			StepDust_Right2.emitting = true
 		last_step_frame = anim.frame
-
 	elif anim.frame not in left_step_frames1 and anim.frame not in right_step_frames1 and anim.frame not in left_step_frames2 and anim.frame not in right_step_frames2:
 		last_step_frame = -1
 
+
 func play_game_over_anim():
-	# Aktifkan gravitasi normal supaya jatuh
 	is_dead = true 
-	velocity = Vector2.ZERO  # reset gerak horizontal
-	# Mainkan animasi
+	velocity = Vector2.ZERO  
 	if anim:
 		anim.play("Fall")
 
 	collision_running.disabled = true
 	collision_jumping.disabled = true
 	collision_falling.disabled = false
-	# Matikan partikel debu
+
 	if JumpDust: JumpDust.emitting = false
 	if StepDust_Left1: StepDust_Left1.emitting = false
 	if StepDust_Right1: StepDust_Right1.emitting = false
 	if StepDust_Left2: StepDust_Left2.emitting = false
 	if StepDust_Right2: StepDust_Right2.emitting = false
 
-	# Putar animasi "Death" (pastikan ada di AnimatedSprite2D)
 	if anim:
 		anim.play("Fall")
