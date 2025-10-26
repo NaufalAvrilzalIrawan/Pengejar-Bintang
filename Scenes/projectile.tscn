@@ -1,19 +1,89 @@
-[gd_scene load_steps=3 format=3 uid="uid://n3a4feunjqkp"]
+[gd_scene load_steps=12 format=3 uid="uid://n3a4feunjqkp"]
 
-[ext_resource type="Texture2D" uid="uid://ckvs8wdaw2k6x" path="res://Assets/Graphics/Object/Projectile.png" id="1_f8cdk"]
 [ext_resource type="Script" uid="uid://dg4l04w23te27" path="res://Scripts/projectile.gd" id="1_yr2qt"]
+[ext_resource type="Texture2D" uid="uid://v24x8qwqab80" path="res://Assets/Graphics/Projectile/Frame 1.png" id="2_cu5m1"]
+[ext_resource type="Texture2D" uid="uid://4ldiymx4uwlh" path="res://Assets/Graphics/Projectile/Frame 2.png" id="3_rsyq6"]
+[ext_resource type="Texture2D" uid="uid://dvhk3hj2g7kea" path="res://Assets/Graphics/Projectile/Frame 3.png" id="4_augfd"]
+[ext_resource type="Texture2D" uid="uid://dxcikhieugjnc" path="res://Assets/Graphics/Projectile/Frame 4.png" id="5_0iiay"]
+[ext_resource type="Texture2D" uid="uid://bfp334tyydl13" path="res://Assets/Graphics/Projectile/Frame 5.png" id="6_d6p7i"]
+[ext_resource type="Texture2D" uid="uid://cn4dc3rpcoruc" path="res://Assets/Graphics/Projectile/Frame 6.png" id="7_ovs0d"]
+[ext_resource type="Texture2D" uid="uid://clyilpw7df2kn" path="res://Assets/Graphics/Object/Dust.png" id="8_rsyq6"]
+[ext_resource type="AudioStream" uid="uid://b6gp3fm6u6grv" path="res://Assets/Audio/Parry.wav" id="9_augfd"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_yr2qt"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_ay8ps"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_cu5m1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_rsyq6")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_augfd")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_0iiay")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_d6p7i")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_ovs0d")
+}],
+"loop": true,
+"name": &"default",
+"speed": 15.0
+}]
 
 [node name="Projectile" type="Area2D"]
 collision_layer = 2
 script = ExtResource("1_yr2qt")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(0.395833, 0.347826)
-texture = ExtResource("1_f8cdk")
-centered = false
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_yr2qt")
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
-scale = Vector2(0.395833, 0.347826)
-polygon = PackedVector2Array(22.7368, 0, 17.6842, 8.625, 10.1053, 17.25, 2.52632, 20.125, 2.52632, 20.125, 2.52632, 25.875, 7.57895, 28.75, 10.1053, 31.625, 20.2105, 40.25, 22.7368, 46, 27.7895, 46, 27.7895, 40.25, 30.3158, 37.375, 37.8947, 28.75, 45.4737, 25.875, 45.4737, 20.125, 42.9474, 20.125, 37.8947, 17.25, 30.3158, 8.625, 25.2632, 0)
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_ay8ps")
+autoplay = "default"
+frame_progress = 0.482028
+
+[node name="DeflectedParticles" type="CPUParticles2D" parent="."]
+rotation = 3.14159
+emitting = false
+amount = 10
+texture = ExtResource("8_rsyq6")
+lifetime = 3.0
+one_shot = true
+speed_scale = 5.0
+explosiveness = 1.0
+lifetime_randomness = 1.0
+spread = 90.0
+gravity = Vector2(0, 0)
+initial_velocity_max = 50.0
+scale_amount_min = 0.25
+scale_amount_max = 0.75
+color = Color(1, 0, 0, 0.705882)
+
+[node name="TrailParticles" type="CPUParticles2D" parent="."]
+rotation = 3.14159
+amount = 10
+texture = ExtResource("8_rsyq6")
+lifetime = 5.0
+speed_scale = 5.0
+lifetime_randomness = 1.0
+spread = 0.0
+gravity = Vector2(0, 0)
+initial_velocity_max = 50.0
+scale_amount_min = 0.25
+scale_amount_max = 0.75
+color = Color(1, 0, 0, 0.705882)
+
+[node name="Block" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("9_augfd")
+volume_db = 24.0
 
 [connection signal="area_entered" from="." to="." method="_on_area_entered"]
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]

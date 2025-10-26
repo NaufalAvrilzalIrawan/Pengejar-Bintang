@@ -1,0 +1,110 @@
+[gd_scene load_steps=13 format=3 uid="uid://b38cw15wyjsqk"]
+
+[ext_resource type="Script" uid="uid://dg4l04w23te27" path="res://Scripts/projectile.gd" id="1_hx2fk"]
+[ext_resource type="Texture2D" uid="uid://y4hbk1k236h5" path="res://Assets/Graphics/Moth/Frame 1.png" id="2_dhfqo"]
+[ext_resource type="Texture2D" uid="uid://d0jki41vv2x6f" path="res://Assets/Graphics/Moth/Frame 2.png" id="3_dsiei"]
+[ext_resource type="Texture2D" uid="uid://blrcf8cuorrrf" path="res://Assets/Graphics/Moth/Frame 3.png" id="4_8wyla"]
+[ext_resource type="Texture2D" uid="uid://02nn308i6gww" path="res://Assets/Graphics/Moth/Frame 4.png" id="5_3roob"]
+[ext_resource type="Texture2D" uid="uid://doxoqpcvfh3dh" path="res://Assets/Graphics/Moth/Frame 5.png" id="6_30y8p"]
+[ext_resource type="Texture2D" uid="uid://c7e3ixe47urne" path="res://Assets/Graphics/Moth/Frame 6.png" id="7_64int"]
+[ext_resource type="Texture2D" uid="uid://ci0dl5ludvc6l" path="res://Assets/Graphics/Moth/Frame 7.png" id="8_1qg4d"]
+[ext_resource type="Texture2D" uid="uid://clyilpw7df2kn" path="res://Assets/Graphics/Object/Dust.png" id="8_hgmq1"]
+[ext_resource type="AudioStream" uid="uid://b6gp3fm6u6grv" path="res://Assets/Audio/Parry.wav" id="9_1qg4d"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_yr2qt"]
+radius = 16.0312
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_ay8ps"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_dhfqo")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_dsiei")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_8wyla")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_3roob")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_30y8p")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_64int")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_1qg4d")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_64int")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_30y8p")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_3roob")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_8wyla")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_dsiei")
+}],
+"loop": true,
+"name": &"default",
+"speed": 48.0
+}]
+
+[node name="Moth" type="Area2D"]
+collision_layer = 2
+script = ExtResource("1_hx2fk")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_yr2qt")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+scale = Vector2(0.75, 0.75)
+sprite_frames = SubResource("SpriteFrames_ay8ps")
+autoplay = "default"
+frame_progress = 0.991793
+
+[node name="DeflectedParticles" type="CPUParticles2D" parent="."]
+rotation = 3.14159
+emitting = false
+amount = 10
+texture = ExtResource("8_hgmq1")
+lifetime = 3.0
+one_shot = true
+speed_scale = 5.0
+explosiveness = 1.0
+lifetime_randomness = 1.0
+spread = 90.0
+gravity = Vector2(0, 0)
+initial_velocity_max = 50.0
+scale_amount_min = 0.25
+scale_amount_max = 0.75
+color = Color(1, 0, 0, 0.705882)
+
+[node name="TrailParticles" type="CPUParticles2D" parent="."]
+rotation = 3.14159
+amount = 10
+texture = ExtResource("8_hgmq1")
+lifetime = 5.0
+speed_scale = 5.0
+lifetime_randomness = 1.0
+spread = 0.0
+gravity = Vector2(0, 0)
+initial_velocity_max = 50.0
+scale_amount_min = 0.25
+scale_amount_max = 0.75
+color = Color(1, 0, 0, 0.705882)
+
+[node name="Block" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("9_1qg4d")
+volume_db = 24.0
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
