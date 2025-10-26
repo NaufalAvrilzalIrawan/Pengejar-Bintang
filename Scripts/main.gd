@@ -31,6 +31,8 @@ const LAND_SCENE := preload("res://Scenes/land.tscn")
 
 #Game Configuration
 @export var Random_Generate := true
+@export var Random_Projectile := true
+@export var Targeted_Generate := true
 @export var START_POS := Vector2(150, 500)
 @export var MOON_START := Vector2(698, 330)
 @export var START_SPEED : float = 300.0
@@ -189,9 +191,10 @@ func _process(delta: float) -> void:
 		return
 	if Random_Generate == true:
 		generate_stones()
-		generate_projectiles()
 		generate_coins()
 		generate_enemies()
+	if Random_Projectile == true:
+		generate_projectiles()
 
 	update_game_state(delta)
 	generate_land()
@@ -263,11 +266,60 @@ func generate_next_land_segment() -> void:
 	spawn_land_segment(Vector2(new_pos_x, LAND_Y_POSITION))
 
 func spawn_land_segment(pos: Vector2) -> void:
+	# Buat instance land baru dari scene
 	var new_land = LAND_SCENE.instantiate()
 	new_land.position = pos
 	add_child(new_land)
+	
+	# Simpan ke daftar segment untuk tracking dan cleanup
 	land_segments.append(new_land)
 	last_land_segment = new_land
+
+	# 🔹 Jika Land punya fungsi get_spawn_points() (dari Land.gd)
+	if new_land.has_method("get_spawn_points"):
+		var spawns = new_land.get_spawn_points()
+		if Targeted_Generate == true:
+		# 🪙 Spawn Coins (bisa banyak marker)
+			if spawns.has("coin"):
+				for coin_pos in spawns["coin"]:
+					var coin_instance = COIN_SCENE.instantiate()
+					coin_instance.position = coin_pos
+					coin_instance.body_entered.connect(_on_coin_collected.bind(coin_instance))
+					add_child(coin_instance)
+					coins.append(coin_instance)
+
+			# 💀 Spawn Enemies
+			if spawns.has("enemy"):
+				for enemy_pos in spawns["enemy"]:
+					var enemy_instance = ENEMY_SCENE.instantiate()
+					enemy_instance.position = enemy_pos
+					add_child(enemy_instance)
+					enemies.append(enemy_instance)
+					
+					# Inisialisasi enemy agar kecepatannya sinkron
+					if enemy_instance.has_method("init_enemy"):
+						enemy_instance.init_enemy(speed, START_SPEED, MAX_SPEED)
+
+			# 🪨 Spawn Stones
+			if spawns.has("stone"):
+				for stone_pos in spawns["stone"]:
+					var stone_instance = STONE_1_SCENE.instantiate()
+					stone_instance.position = stone_pos
+					add_child(stone_instance)
+					stones.append(stone_instance)
+					obstacles.append(stone_instance)
+					stone_instance.body_entered.connect(hit_stone)
+
+			# 💥 Spawn Projectiles
+			if spawns.has("projectile"):
+				for proj_pos in spawns["projectile"]:
+					var proj_instance = PROJECTILE_SCENE.instantiate()
+					proj_instance.position = proj_pos
+					add_child(proj_instance)
+					stones.append(proj_instance)
+					obstacles.append(proj_instance)
+					proj_instance.body_entered.connect(hit_stone)
+
 
 func is_in_safe_zone(pos_x: float) -> bool:
 	for segment in land_segments:
@@ -400,41 +452,41 @@ func generate_enemies():
 	if camera_right_edge > _next_enemy_spawn_x:
 		var spawn_x = camera_right_edge + 750
 		
-		# Don't spawn over a gap
+		# Jangan spawn di atas celah (gap)
 		var land_y = get_land_y_at_x(spawn_x)
 		if land_y == null:
-			# No land here (it's a gap), so skip spawning
-			_next_enemy_spawn_x = camera_right_edge + 200 # Try again soon
+			_next_enemy_spawn_x = camera_right_edge + 200 # coba lagi nanti
 			return
 		
+		# Hindari zona aman di tepi platform
 		if is_in_safe_zone(spawn_x):
-			_next_enemy_spawn_x = camera_right_edge + 200 # Try again soon
+			_next_enemy_spawn_x = camera_right_edge + 200
 			return
 		
+		# Buat instance musuh
 		var enemy = ENEMY_SCENE.instantiate()
 		
-		# Get its height to place it correctly on the ground
+		# Hitung tinggi sprite agar musuh berdiri di atas tanah
 		var enemy_sprite = enemy.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 		var spawn_y_final: float
 		
 		if enemy_sprite and enemy_sprite.sprite_frames:
-			# Get the texture of the first frame of the "default" animation
-			var frame_texture = enemy_sprite.sprite_frames.get_frame_texture("default", 0)
+			var frame_texture = enemy_sprite.sprite_frames.get_frame_texture("shoot", 0)
 			var enemy_height = frame_texture.get_height() * enemy_sprite.scale.y
 			spawn_y_final = land_y - (enemy_height / 2)
 		else:
-			spawn_y_final = LAND_Y_POSITION - 30 # Fallback
+			spawn_y_final = LAND_Y_POSITION - 30
 			print_debug("ERROR: Could not find 'AnimatedSprite2D' in Enemy_1.tscn")
 
+		# Tempatkan musuh dan tambahkan ke scene utama
 		enemy.position = Vector2(spawn_x, spawn_y_final)
 		add_child(enemy)
 		enemies.append(enemy)
 		
-		# Pass the current speed to the enemy
-		enemy.init_enemy(speed, START_SPEED, MAX_SPEED)
-		
-		# Set the next trigger relative to THIS spawn's position
-		_next_enemy_spawn_x = spawn_x + randi_range(3000, 5000)
+		# Tidak perlu init_enemy() lagi — tempo serangan diatur oleh animasi musuh
+
+		# Atur kapan musuh berikutnya akan muncul
+		_next_enemy_spawn_x = spawn_x + randi_range(100, 3000)
 	
 func _on_coin_collected(body, coin_instance):
 	if body.name != "Player":
@@ -578,6 +630,10 @@ func game_over() -> void:
 	# Only save the file if a new record was set
 	if new_high_score_set:
 		GameData.save_data()
+		
+	for projectile in get_tree().get_nodes_in_group("projectiles"):
+		if is_instance_valid(projectile):
+			projectile.queue_free()
 	
 	get_tree().paused = true
 	game_running = false

@@ -1,11 +1,8 @@
-[gd_scene load_steps=20 format=3 uid="uid://cwrrhfenhpqlc"]
+[gd_scene load_steps=17 format=3 uid="uid://cwrrhfenhpqlc"]
 
 [ext_resource type="Script" uid="uid://crn72c1c3usvm" path="res://Scripts/enemy_1.gd" id="1_v73nf"]
 [ext_resource type="Texture2D" uid="uid://durvywj4qcxqc" path="res://Assets/Graphics/Enemy/Frame 1.png" id="2_hmo6u"]
-[ext_resource type="Texture2D" uid="uid://wcrphmtre8if" path="res://Assets/Graphics/Enemy/Reform 1.png" id="2_xfaib"]
 [ext_resource type="Texture2D" uid="uid://dd2bomotc503c" path="res://Assets/Graphics/Enemy/Frame 2.png" id="3_arec4"]
-[ext_resource type="Texture2D" uid="uid://c3aqdnijeg4lc" path="res://Assets/Graphics/Enemy/Reform 2.png" id="3_yuvwt"]
-[ext_resource type="Texture2D" uid="uid://brixtekbfsbfe" path="res://Assets/Graphics/Enemy/Reform 3.png" id="4_3ab41"]
 [ext_resource type="Texture2D" uid="uid://dym6q8kg5v58q" path="res://Assets/Graphics/Enemy/Frame 3.png" id="4_v73nf"]
 [ext_resource type="Texture2D" uid="uid://cv7yp8wulrhy3" path="res://Assets/Graphics/Enemy/Frame 4.png" id="5_ya6xy"]
 [ext_resource type="Texture2D" uid="uid://jgxjivis704j" path="res://Assets/Graphics/Enemy/Frame 5.png" id="6_s71u0"]
@@ -19,23 +16,6 @@
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_2ikxr"]
 animations = [{
-"frames": [{
-"duration": 1.0,
-"texture": ExtResource("2_xfaib")
-}, {
-"duration": 1.0,
-"texture": ExtResource("3_yuvwt")
-}, {
-"duration": 1.0,
-"texture": ExtResource("4_3ab41")
-}, {
-"duration": 1.0,
-"texture": ExtResource("2_hmo6u")
-}],
-"loop": false,
-"name": &"reform",
-"speed": 24.0
-}, {
 "frames": [{
 "duration": 1.0,
 "texture": ExtResource("2_hmo6u")
@@ -78,33 +58,20 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": ExtResource("13_krxj2")
-}, {
-"duration": 1.0,
-"texture": ExtResource("13_krxj2")
-}, {
-"duration": 1.0,
-"texture": ExtResource("13_krxj2")
-}, {
-"duration": 1.0,
-"texture": ExtResource("13_krxj2")
 }],
 "loop": false,
 "name": &"shoot",
-"speed": 24.0
+"speed": 30.0
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ya6xy"]
 size = Vector2(63, 104)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_y27sj"]
-size = Vector2(1081, 530)
+size = Vector2(1081, 104)
 
 [node name="Enemy1" type="Area2D" groups=["destroyable", "enemy"]]
 script = ExtResource("1_v73nf")
-
-[node name="Muzzle" type="Marker2D" parent="."]
-position = Vector2(-17, -28)
-scale = Vector2(0.5, 0.5)
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 modulate = Color(0.34779, 0.479685, 1, 1)
@@ -112,6 +79,12 @@ position = Vector2(-1, 3)
 scale = Vector2(0.5, 0.5)
 sprite_frames = SubResource("SpriteFrames_2ikxr")
 animation = &"shoot"
+frame = 13
+frame_progress = 1.0
+
+[node name="Muzzle" type="Marker2D" parent="."]
+position = Vector2(-17, -28)
+scale = Vector2(0.5, 0.5)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(-14.5, 13)
@@ -120,7 +93,7 @@ shape = SubResource("RectangleShape2D_ya6xy")
 [node name="DetectionZone" type="Area2D" parent="."]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionZone"]
-position = Vector2(-530, -200)
+position = Vector2(-530, 13)
 shape = SubResource("RectangleShape2D_y27sj")
 debug_color = Color(0, 0.6, 0.137255, 0.419608)
 

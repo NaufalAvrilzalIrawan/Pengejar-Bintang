@@ -1,56 +1,42 @@
 extends Area2D
 
-
-# Preload
 const PROJECTILE_SCENE := preload("res://Scenes/projectile.tscn")
 
-const MAX_SHOOT_WAIT_TIME: float = 2.2 # Wait time at slowest player speed
-const MIN_SHOOT_WAIT_TIME: float = 0.8 # Wait time at fastest player speed
-
-@onready var shoot_timer: Timer = $ShootTimer
 @onready var muzzle: Marker2D = $Muzzle
+@onready var anim: AnimatedSprite2D = $AnimatedSprite2D
 
 var player_in_range: bool = false
+var is_shooting: bool = false
 
-func init_enemy(current_player_speed: float, min_player_speed: float, max_player_speed: float):
-	# Calculate the new wait time based on player speed
-	# remap() scales one range of numbers to another
-	var new_wait_time = remap(
-		current_player_speed,
-		min_player_speed,
-		max_player_speed,
-		MAX_SHOOT_WAIT_TIME,
-		MIN_SHOOT_WAIT_TIME
-	)
-	
-	# Set the timer's wait time to our new calculated value
-	shoot_timer.wait_time = new_wait_time
-	print_debug("New enemy spawned. Shoot timer set to: ", new_wait_time)
-	
+
+func _ready():
+	# Pastikan sinyal animation_finished terhubung
+	if not anim.is_connected("animation_finished", Callable(self, "_on_AnimatedSprite2D_animation_finished")):
+		anim.animation_finished.connect(_on_AnimatedSprite2D_animation_finished)
+
 func _on_detection_zone_body_entered(body):
-	# If the player enters detection range, start shooting
 	if body.is_in_group("player"):
 		player_in_range = true
+		if not is_shooting:
+			start_shoot_cycle()
 
 func _on_detection_zone_body_exited(body):
-	# If the player leaves, stop shooting
 	if body.is_in_group("player"):
 		player_in_range = false
 
-func _on_shoot_timer_timeout():
-	# When the timer goes off, shoot if the player is in range
-	if player_in_range:
+func start_shoot_cycle():
+	anim.frame = 0
+	is_shooting = true
+	anim.play("shoot") # dimainkan sekali karena looping sudah dimatikan di _ready()
+
+func _on_AnimatedSprite2D_animation_finished():
+	if anim.animation == "shoot":
 		shoot()
+		is_shooting = false
+		anim.play("reform") 
 
 func shoot():
 	var projectile = PROJECTILE_SCENE.instantiate()
-	# Spawn the projectile at the muzzle's global position
 	projectile.global_position = muzzle.global_position
-	# Add the projectile to the main scene, not this enemy
 	get_tree().root.add_child(projectile)
-
-
-func _on_body_entered(body: Node2D) -> void:
-	if body.is_in_group("player"):
-		# Get the main scene and call game_over
-		get_tree().root.get_node("Main").game_over()
+	print_debug("Projectile fired at:", muzzle.global_position)

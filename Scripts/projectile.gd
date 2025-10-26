@@ -10,6 +10,7 @@ var deflected := false
 
 func _ready() -> void:
 	direction = direction.normalized()
+	add_to_group("projectiles")
 
 func _physics_process(delta: float) -> void:
 	if not deflected:

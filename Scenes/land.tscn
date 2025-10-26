@@ -29,6 +29,7 @@ position = Vector2(1661, 136)
 shape = SubResource("RectangleShape2D_6t82i")
 
 [node name="PlatformA" type="StaticBody2D" parent="."]
+position = Vector2(665, 0)
 
 [node name="TileMap" type="TileMap" parent="PlatformA"]
 scale = Vector2(2, 2)
@@ -90,19 +91,25 @@ texture = ExtResource("1_6t82i")
 centered = false
 
 [node name="CoinSpawn" type="Marker2D" parent="."]
+visible = false
 position = Vector2(542, 0)
 
 [node name="CoinSpawn2" type="Marker2D" parent="."]
+visible = false
 position = Vector2(593, 0)
 
 [node name="CoinSpawn3" type="Marker2D" parent="."]
+visible = false
 position = Vector2(647, 0)
 
 [node name="EnemySpawn" type="Marker2D" parent="."]
+visible = false
 position = Vector2(1201, 0)
 
 [node name="StoneSpawn" type="Marker2D" parent="."]
+visible = false
 position = Vector2(1539, 0)
 
 [node name="ProjectileSpawn" type="Marker2D" parent="."]
+visible = false
 position = Vector2(2153, -191)

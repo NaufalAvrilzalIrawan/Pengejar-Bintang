@@ -11,6 +11,8 @@
 script = ExtResource("1_jjvhh")
 moon_speed = 10.0
 moon_travel_distance = 900.0
+Random_Projectile = false
+Targeted_Generate = false
 START_SPEED = 500.0
 LAND_Y_POSITION = 560.0
 PROJECTILE_HEIGHTS = Array[int]([300, 400])
