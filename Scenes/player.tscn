@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3 uid="uid://c0cf27ribiu3s"]
+[gd_scene load_steps=33 format=3 uid="uid://c0cf27ribiu3s"]
 
 [ext_resource type="Script" uid="uid://btwnkqw0t8o7r" path="res://Scripts/player.gd" id="1_pu2lt"]
 [ext_resource type="Texture2D" uid="uid://cv8unndvj6hsd" path="res://Assets/Graphics/Rolling/Frame 1.png" id="2_fd4e3"]
@@ -28,6 +28,7 @@
 [ext_resource type="Texture2D" uid="uid://c3sx6x7ta3e11" path="res://Assets/Graphics/Run 3/Frame 10.png" id="19_0gysh"]
 [ext_resource type="Texture2D" uid="uid://dxpfxwxbw5o8s" path="res://Assets/Graphics/Run 3/Frame 11.png" id="20_vfarp"]
 [ext_resource type="Texture2D" uid="uid://cgv4utmwbhbab" path="res://Assets/Graphics/Run 3/Frame 12.png" id="21_y6uwr"]
+[ext_resource type="AudioStream" uid="uid://cevcnunqle60s" path="res://Assets/Audio/Sand.wav" id="29_83xs0"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_wpjfl"]
 animations = [{
@@ -270,3 +271,8 @@ color = Color(0, 0.0431373, 0.129412, 1)
 [node name="CollisionShapeFalling" type="CollisionShape2D" parent="."]
 position = Vector2(62.9032, -54.8387)
 shape = SubResource("RectangleShape2D_y6uwr")
+
+[node name="SandAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("29_83xs0")
+volume_db = 9.0
+pitch_scale = 2.0

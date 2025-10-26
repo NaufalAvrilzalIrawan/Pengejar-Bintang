@@ -22,6 +22,7 @@ var is_dead: bool = false
 @onready var StepDust_Left2: CPUParticles2D = $StepDust_Left2
 @onready var StepDust_Right2: CPUParticles2D = $StepDust_Right2
 @onready var JumpAudio: AudioStreamPlayer2D = $JumpAudio
+@onready var SandAudio: AudioStreamPlayer2D = $SandAudio
 
 # ======== STATUS =========
 var was_on_floor := false
@@ -59,6 +60,7 @@ func _physics_process(delta):
 			velocity.y = JUMP_SPEED
 			if JumpAudio:
 				JumpAudio.play()
+				SandAudio.play()
 			anim.play("Jump")
 			play_jump_dust()
 		else:
@@ -98,10 +100,11 @@ func play_run_dust():
 
 	var left_step_frames1 = [0]
 	var right_step_frames1 = [3]
-	var left_step_frames2 = [5]
+	var left_step_frames2 = [6]
 	var right_step_frames2 = [8]
 	
 	if anim.frame in left_step_frames1 and anim.frame != last_step_frame:
+		SandAudio.play()
 		if StepDust_Left1:
 			StepDust_Left1.restart()
 			StepDust_Left1.emitting = true
@@ -112,6 +115,7 @@ func play_run_dust():
 			StepDust_Right1.emitting = true
 		last_step_frame = anim.frame
 	elif anim.frame in left_step_frames2 and anim.frame != last_step_frame:
+		SandAudio.play()
 		if StepDust_Left2:
 			StepDust_Left2.restart()
 			StepDust_Left2.emitting = true
